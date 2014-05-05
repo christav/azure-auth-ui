@@ -5,6 +5,7 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var session = require('cookie-session');
+var flash = require('connect-flash');
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 
@@ -46,6 +47,7 @@ app.use(express.static(path.join(__dirname, 'bower_components')));
 app.use(session({
     secret: 'new secret'
 }));
+app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
 
