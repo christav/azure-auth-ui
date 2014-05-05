@@ -1,6 +1,3 @@
-projects/*
-targets/*
-
 # Visual Studio #
 *.suo
 *.user
@@ -13,8 +10,8 @@ azure_error
 checkstyle-result.xml
 test-result.xml
 
-# Hydra codegen downloaded binaries #
-hydra/
+# Bower #
+bower_components/
 
 # Mac OS #
 .DS_Store
@@ -25,7 +22,3 @@ Thumbs.db
 
 # WebStorm #
 .idea/
-
-# docs #
-docs/
-jsdoc/

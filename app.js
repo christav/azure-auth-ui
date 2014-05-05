@@ -4,8 +4,29 @@ var favicon = require('static-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var session = require('cookie-session');
+var passport = require('passport');
+var LocalStrategy = require('passport-local').Strategy;
 
 var routes = require('./routes');
+
+passport.use(new LocalStrategy(
+  function (username, password, done) {
+    if (username === 'chris' && password === 'secret') {
+      return done(null, { username: 'chris' });
+    }
+    return done(null, false, { message: 'Unknown user'});
+  }));
+
+passport.serializeUser(function (user, done) {
+  console.log("Serializing user", user);
+  done(null, user);
+});
+
+passport.deserializeUser(function (user, done) {
+  console.log('passport deserializing user', user);
+  done(null, user);
+});
 
 var app = express();
 
@@ -15,10 +36,18 @@ app.set('view engine', 'jade');
 
 app.use(favicon());
 app.use(logger('dev'));
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'bower_components')));
+
+app.use(session({
+    secret: 'new secret'
+}));
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use('/', routes.root);
 app.use('/users', routes.users);
