@@ -2,6 +2,7 @@
   "name": "application-name",
   "version": "0.0.1",
   "private": true,
+  "main": "./bin/www",
   "scripts": {
     "start": "nodemon ./bin/www"
   },
