@@ -4,7 +4,11 @@ block content
   h1= title
   p Welcome to #{title}. There have been #{n} views of this page, dude!
 
-  if user
-    p Welcome, #{user.displayname}
-  else
+  if !user
     a(href='/users/login') Please log in
+  else
+    p Welcome, #{user.displayname}
+    p You are a member of the following github organizations
+    ol
+        each org in orgs
+            li= org
