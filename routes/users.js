@@ -12,8 +12,10 @@ router.get('/login', passport.authenticate('github'));
 
 router.get('/loggedIn',
   passport.authenticate('github', {
-    successRedirect: '/',
     failureRedirect: '/users/login'
-  }));
+  }),
+  function (req, res) {
+    res.redirect('/');
+  });
 
 module.exports = router;
