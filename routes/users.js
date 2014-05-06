@@ -8,15 +8,12 @@ router.get('/', function(req, res) {
   res.send('respond with a resource');
 });
 
-router.get('/login', function (req, res) {
-  res.render('login', { messages: req.flash('error')});
-});
+router.get('/login', passport.authenticate('github'));
 
-router.post('/login',
-  passport.authenticate('local', {
+router.get('/loggedIn',
+  passport.authenticate('github', {
     successRedirect: '/',
-    failureRedirect: '/users/login',
-    failureFlash: true})
-);
+    failureRedirect: '/users/login'
+  }));
 
 module.exports = router;
