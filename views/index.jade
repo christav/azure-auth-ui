@@ -5,6 +5,6 @@ block content
   p Welcome to #{title}. There have been #{n} views of this page, dude!
 
   if user
-    p Welcome, #{user.username}
+    p Welcome, #{user.displayName}
   else
     a(href='/users/login') Please log in
