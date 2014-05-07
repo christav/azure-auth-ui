@@ -5,8 +5,7 @@ var GitHubApi = require('github');
 
 /* GET home page. */
 router.get('/', function(req, res) {
-  var n = req.session.views || 0;
-  req.session.views = n + 1;
+  var title = 'Azure Github Authorization tool';
 
   var organizations = [];
   if (req.user) {
@@ -26,10 +25,10 @@ router.get('/', function(req, res) {
           organizations.push(orgData.login);
         });
       }
-      res.render('index', { title: 'Your github orgs', n: n, user: req.user, orgs: organizations});
+      res.render('index', { title: title, user: req.user, orgs: organizations});
     });
   } else {
-    res.render('index', { title: 'Express in the hizzouse', n: n });
+    res.render('index', { title: title });
   }
 });
 
