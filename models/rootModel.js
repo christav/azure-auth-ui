@@ -11,14 +11,16 @@ var express = require('express');
 var router = express.Router();
 
 var github = require('../lib/github');
-var pGithub = require('../lib/pGithub');
-var rxGithub = require('../lib/rxGithub');
 
 var masterRepo = {
   user: 'Azure',
   repo: 'azure-github-organization'
 };
 
+//
+// First step of building our model -
+// is the user authenticated?
+//
 function checkAuthorization(req, res, next) {
   if (!req.user) {
     req.model = { authorized: false };
@@ -32,26 +34,31 @@ function checkAuthorization(req, res, next) {
   next();
 }
 
+//
+// Second step - create a github API client object
+// with the user's access token, and tack it on
+// the req object for later use.
+//
 function createGithubClient(req, res, next) {
   if (!req.user) {
     return next();
   }
 
-  console.log('creating client');
   req.github = github.createClient(req.user.accessToken);
   next();
 }
 
+//
+// Third step - does this user have access to the
+// master auth repo? Try to get the repo information
+// - if it fails with a 404 this user doesn't have
+// access.
+//
 function checkAccess(req, res, next) {
-  console.log('checking repo access');
   if (!req.github) {
     return next();
   }
 
-  //
-  // Try to get the info for the azure-auth repo. If you
-  // can't get it, this github user doesn't have permissions.
-  //
   github.get(req.github, 'repos.get', masterRepo)
     .then(function (repo) {
       req.model.repoAccess = true;
@@ -67,6 +74,10 @@ function checkAccess(req, res, next) {
     });
 }
 
+//
+// Fourth step - does this user already have a fork
+// of the master auth repo?
+//
 function checkForFork(req, res, next) {
   req.model.hasFork = false;
 
@@ -94,6 +105,10 @@ function checkForFork(req, res, next) {
     );
 }
 
+//
+// We use a router to compose our steps
+// into a single piece of middleware
+//
 router.use(checkAuthorization);
 router.use(createGithubClient);
 router.use(checkAccess);
