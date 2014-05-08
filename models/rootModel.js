@@ -60,8 +60,43 @@ function checkAccess(req, res, next) {
   });
 }
 
+function checkForFork(req, res, next) {
+  if (!req.model.repoAccess) {
+    req.model.hasFork = false;
+    return next();
+  }
+
+  function lookForFork(err, forkList) {
+    console.log('--- new page ---');
+    if (err) {
+      req.model.error = 'Error accessing github, error = ' + JSON.parse(err.message).message;
+      return next();
+    }
+
+    var found = forkList.filter(function (fork) {
+      console.log('Fork for', fork.owner.login);
+      return fork.owner.login === req.user.username;
+    });
+
+    if (found.length > 0) {
+      req.model.hasFork = true;
+      return next();
+    }
+
+    if (req.github.hasNextPage(forkList)) {
+      req.github.getNextPage(forkList, lookForFork);
+    } else {
+      req.model.hasFork = false;
+      return next();
+    }
+  }
+
+  req.github.repos.getForks({ user: 'Azure', repo: 'azure-github-organization'}, lookForFork);
+}
+
 router.use(checkAuthorization);
 router.use(createGithubClient);
 router.use(checkAccess);
+router.use(checkForFork);
 
 module.exports = router;

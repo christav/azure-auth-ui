@@ -18,3 +18,8 @@ block content
     else
       p.
         Your account has the correct access to the azure-github-organization repository!
+
+      if hasFork
+        p Your account has a fork of the azure-github-organization repository.
+      else
+        p Your account does not have a fork of the azure-github-organization repository.
