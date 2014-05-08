@@ -4,10 +4,17 @@
 // request. Places the model object on req.model.
 //
 
+var _ = require('lodash');
 var express = require('express');
 var router = express.Router();
 
 var GitHubApi = require('github');
+var rxGithub = require('../lib/rxGithub');
+
+var masterRepo = {
+  user: 'Azure',
+  repo: 'azure-github-organization'
+};
 
 function checkAuthorization(req, res, next) {
   if (!req.user) {
@@ -48,7 +55,7 @@ function checkAccess(req, res, next) {
   // Try to get the info for the azure-auth repo. If you
   // can't get it, this github user doesn't have permissions.
   //
-  github.repos.get({user: 'Azure', repo: 'azure-github-organization'}, function (err, repo) {
+  github.repos.get(masterRepo, function (err, repo) {
     if (err && err.code !== 404) {
       req.model.error = 'Could not access github, error = ' + JSON.parse(err.message).message;
     } else if (err && err.code === 404) {
@@ -61,37 +68,30 @@ function checkAccess(req, res, next) {
 }
 
 function checkForFork(req, res, next) {
+  req.model.hasFork = false;
+
   if (!req.model.repoAccess) {
-    req.model.hasFork = false;
     return next();
   }
 
-  function lookForFork(err, forkList) {
-    console.log('--- new page ---');
-    if (err) {
-      req.model.error = 'Error accessing github, error = ' + JSON.parse(err.message).message;
-      return next();
-    }
-
-    var found = forkList.filter(function (fork) {
-      console.log('Fork for', fork.owner.login);
+  rxGithub(req.github, 'repos.getForks', masterRepo)
+    .firstOrDefault(function (fork) {
       return fork.owner.login === req.user.username;
-    });
-
-    if (found.length > 0) {
-      req.model.hasFork = true;
-      return next();
-    }
-
-    if (req.github.hasNextPage(forkList)) {
-      req.github.getNextPage(forkList, lookForFork);
-    } else {
-      req.model.hasFork = false;
-      return next();
-    }
-  }
-
-  req.github.repos.getForks({ user: 'Azure', repo: 'azure-github-organization'}, lookForFork);
+    })
+    .subscribe(
+      function onNext(fork) {
+        if (fork !== null) {
+          req.model.hasFork = true;
+        }
+      },
+      function onError(err) {
+        req.model.error = 'Error accessing github: ' + JSON.parse(err.message).message;
+        next();
+      },
+      function onCompleted() {
+        next();
+      }
+    );
 }
 
 router.use(checkAuthorization);
