@@ -10,7 +10,7 @@ var _ = require('lodash');
 var express = require('express');
 var router = express.Router();
 
-var GitHubApi = require('github');
+var github = require('../lib/github');
 var pGithub = require('../lib/pGithub');
 var rxGithub = require('../lib/rxGithub');
 
@@ -37,28 +37,22 @@ function createGithubClient(req, res, next) {
     return next();
   }
 
-  var github = new GitHubApi({ version: '3.0.0' });
-  github.authenticate({
-    type: 'oauth',
-    token: req.user.accessToken
-  });
-
-  req.github = github;
+  console.log('creating client');
+  req.github = github.createClient(req.user.accessToken);
   next();
 }
 
 function checkAccess(req, res, next) {
+  console.log('checking repo access');
   if (!req.github) {
     return next();
   }
-
-  var github = req.github;
 
   //
   // Try to get the info for the azure-auth repo. If you
   // can't get it, this github user doesn't have permissions.
   //
-  pGithub(req.github, "repos.get", masterRepo)
+  github.get(req.github, 'repos.get', masterRepo)
     .then(function (repo) {
       req.model.repoAccess = true;
     }, function (err) {
@@ -80,7 +74,7 @@ function checkForFork(req, res, next) {
     return next();
   }
 
-  rxGithub(req.github, 'repos.getForks', masterRepo)
+  github.list(req.github, 'repos.getForks', masterRepo)
     .firstOrDefault(function (fork) {
       return fork.owner.login === req.user.username;
     })
