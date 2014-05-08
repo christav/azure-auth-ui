@@ -4,44 +4,52 @@
 // request. Places the model object on req.model.
 //
 
+var express = require('express');
+var router = express.Router();
+
 var GitHubApi = require('github');
 
-function createUnauthorizedModel(done) {
-  done(null, { authorized: false });
+function checkAuthorization(req, res, next) {
+  if (!req.user) {
+    req.model = { authorized: false };
+  } else {
+    req.model = {
+      authorized: true,
+      username: req.user.username,
+      displayName: req.user.displayname
+    };
+  }
+  next();
 }
 
-function createAuthorizedModel(user, accessToken, done) {
+function checkAccess(req, res, next) {
+  if (!req.model.authorized) {
+    return next();
+  }
+
   var github = new GitHubApi({ version: '3.0.0' });
   github.authenticate({
     type: 'oauth',
-    token: accessToken
+    token: req.user.accessToken
   });
 
-  github.user.getOrgs({}, function (err, orgs) {
-    if (err) {
-      return done(new Error('Could not access github, ' + err.message));
+  //
+  // Try to get the info for the azure-auth repo. If you
+  // can't get it, this github user doesn't have permissions.
+  //
+  github.repos.get({user: 'Azure', repo: 'azure-github-organization'}, function (err, repo) {
+    if (err && err.code !== 404) {
+      req.model.error = 'Could not access github, error = ' + JSON.parse(err.message).message;
+    } else if (err && err.code === 404) {
+      req.model.repoAccess = false;
+    } else {
+      req.model.repoAccess = true;
     }
-
-    done(err, {
-      displayName: user.displayname,
-      authorized: true,
-      orgs: orgs.map(function (org) { return org.login; })
-    });
+    next();
   });
 }
 
-function loadModelMiddleware(req, res, next) {
-  if (!req.user) {
-    createUnauthorizedModel(function (err, model) {
-      req.model = model;
-      next();
-    });
-  } else {
-    createAuthorizedModel(req.user, req.user.accessToken, function (err, model) {
-      req.model = model;
-      next();
-    });
-  }
-}
+router.use(checkAuthorization);
+router.use(checkAccess);
 
-module.exports = loadModelMiddleware;
+module.exports = router;

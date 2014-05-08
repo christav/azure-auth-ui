@@ -8,7 +8,13 @@ block content
     a.btn.btn-primary.btn-lg.active(href='/users/login') Log into Github
   else
     p Welcome, #{displayName}
-    p You are a member of the following github organizations
-    ol
-        each org in orgs
-            li= org
+    if error
+      h1 Error contacting github: #{error}
+    else if !repoAccess
+      p.
+        Unfortunately, the github user #{username} does not have access to the
+        required repository. Please log in under a user that does have access to
+        the repository, or ask somebody else who does. Thanks!
+    else
+      p.
+        Your account has the correct access to the azure-github-organization repository!
