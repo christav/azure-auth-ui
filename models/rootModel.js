@@ -22,8 +22,8 @@ function checkAuthorization(req, res, next) {
   next();
 }
 
-function checkAccess(req, res, next) {
-  if (!req.model.authorized) {
+function createGithubClient(req, res, next) {
+  if (!req.user) {
     return next();
   }
 
@@ -32,6 +32,17 @@ function checkAccess(req, res, next) {
     type: 'oauth',
     token: req.user.accessToken
   });
+
+  req.github = github;
+  next();
+}
+
+function checkAccess(req, res, next) {
+  if (!req.github) {
+    return next();
+  }
+
+  var github = req.github;
 
   //
   // Try to get the info for the azure-auth repo. If you
@@ -50,6 +61,7 @@ function checkAccess(req, res, next) {
 }
 
 router.use(checkAuthorization);
+router.use(createGithubClient);
 router.use(checkAccess);
 
 module.exports = router;
