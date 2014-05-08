@@ -1,13 +1,13 @@
 extends layout
 
 block content
-  h1= title
+  h1 Azure Authorization UI
 
-  if !user
+  if !authorized
     p In order to use this app, you must first log in to Github
     a.btn.btn-primary.btn-lg.active(href='/users/login') Log into Github
   else
-    p Welcome, #{user.displayname}
+    p Welcome, #{displayName}
     p You are a member of the following github organizations
     ol
         each org in orgs

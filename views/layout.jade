@@ -25,10 +25,12 @@ html
               a(href='#about') About
             li
               a(href='#contact') Contact
-            if !user
+            if !authorized
               a.navbar-text.navbar-right(href='/users/login') Log in
             else
               a.navbar-text.navbar-right(href='/users/logout') Log out
 
     .container.content-block
         block content
+
+    script(src='/bootstrap/dist/js/bootstrap.js')
