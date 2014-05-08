@@ -4,11 +4,14 @@
 // request. Places the model object on req.model.
 //
 
+'use strict';
+
 var _ = require('lodash');
 var express = require('express');
 var router = express.Router();
 
 var GitHubApi = require('github');
+var pGithub = require('../lib/pGithub');
 var rxGithub = require('../lib/rxGithub');
 
 var masterRepo = {
@@ -55,16 +58,19 @@ function checkAccess(req, res, next) {
   // Try to get the info for the azure-auth repo. If you
   // can't get it, this github user doesn't have permissions.
   //
-  github.repos.get(masterRepo, function (err, repo) {
-    if (err && err.code !== 404) {
-      req.model.error = 'Could not access github, error = ' + JSON.parse(err.message).message;
-    } else if (err && err.code === 404) {
-      req.model.repoAccess = false;
-    } else {
+  pGithub(req.github, "repos.get", masterRepo)
+    .then(function (repo) {
       req.model.repoAccess = true;
-    }
-    next();
-  });
+    }, function (err) {
+      if (err.code !== 404) {
+        req.model.error = 'Could not access github, error = ' + JSON.parse(err.message).message;
+      } else {
+        req.model.repoAccess = false;
+      }
+    })
+    .finally(function () {
+      next();
+    });
 }
 
 function checkForFork(req, res, next) {

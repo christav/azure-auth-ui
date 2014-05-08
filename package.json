@@ -19,6 +19,7 @@
     "morgan": "~1.0.0",
     "passport": "^0.2.0",
     "passport-github": "^0.1.5",
+    "q": "^1.0.1",
     "rx": "^2.2.20",
     "static-favicon": "~1.0.0"
   }
