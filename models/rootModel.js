@@ -10,7 +10,7 @@ var _ = require('lodash');
 var express = require('express');
 var router = express.Router();
 
-var github = require('../lib/github');
+var GitHubApi = require('../lib/github');
 
 var masterRepo = {
   user: 'Azure',
@@ -40,11 +40,12 @@ function checkAuthorization(req, res, next) {
 // the req object for later use.
 //
 function createGithubClient(req, res, next) {
+  console.log('creating github client')
   if (!req.user) {
     return next();
   }
 
-  req.github = github.createClient(req.user.accessToken);
+  req.github = new GitHubApi(req.user.accessToken);
   next();
 }
 
@@ -55,11 +56,12 @@ function createGithubClient(req, res, next) {
 // access.
 //
 function checkAccess(req, res, next) {
+  console.log('Checking access');
   if (!req.github) {
     return next();
   }
 
-  github.get(req.github, 'repos.get', masterRepo)
+  req.github.get('repos.get', masterRepo)
     .then(function (repo) {
       req.model.repoAccess = true;
     }, function (err) {
@@ -79,13 +81,14 @@ function checkAccess(req, res, next) {
 // of the master auth repo?
 //
 function checkForFork(req, res, next) {
+  console.log('checking for fork');
   req.model.hasFork = false;
 
   if (!req.model.repoAccess) {
     return next();
   }
 
-  github.list(req.github, 'repos.getForks', masterRepo)
+  req.github.list('repos.getForks', masterRepo)
     .firstOrDefault(function (fork) {
       return fork.owner.login === req.user.username;
     })
