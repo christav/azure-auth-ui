@@ -1,12 +1,8 @@
 var express = require('express');
 var passport = require('passport');
-
+var forkModel = require('../models/createForkModel');
+var render = require('../lib/render');
 var router = express.Router();
-
-/* GET users listing. */
-router.get('/', function(req, res) {
-  res.send('respond with a resource');
-});
 
 router.get('/login', passport.authenticate('github'));
 
@@ -22,5 +18,9 @@ router.get('/logout', function (req, res) {
   req.logout();
   res.redirect('/');
 });
+
+router.post('/createfork', forkModel.createFork);
+
+router.get('/waitforfork', forkModel.pollForFork, render.template('waitforfork'));
 
 module.exports = router;

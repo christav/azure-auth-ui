@@ -7,10 +7,13 @@
 'use strict';
 
 var _ = require('lodash');
+var debug = require('debug')('azure-auth-ui:rootModel');
 var express = require('express');
 var router = express.Router();
+var util = require('util');
 
 var GitHubApi = require('../lib/github');
+var githubAccount = require('./githubAccount');
 
 var masterRepo = {
   user: 'Azure',
@@ -35,43 +38,27 @@ function checkAuthorization(req, res, next) {
 }
 
 //
-// Second step - create a github API client object
-// with the user's access token, and tack it on
-// the req object for later use.
-//
-function createGithubClient(req, res, next) {
-  console.log('creating github client')
-  if (!req.user) {
-    return next();
-  }
-
-  req.github = new GitHubApi(req.user.accessToken);
-  next();
-}
-
-//
 // Third step - does this user have access to the
 // master auth repo? Try to get the repo information
 // - if it fails with a 404 this user doesn't have
 // access.
 //
 function checkAccess(req, res, next) {
-  console.log('Checking access');
-  if (!req.github) {
+  debug('Checking access');
+  if (!req.account) {
     return next();
   }
 
-  req.github.get('repos.get', masterRepo)
-    .then(function (repo) {
-      req.model.repoAccess = true;
-    }, function (err) {
-      if (err.code !== 404) {
-        req.model.error = 'Could not access github, error = ' + JSON.parse(err.message).message;
-      } else {
-        req.model.repoAccess = false;
-      }
+  req.model.repoAccess = false;
+
+  req.account.hasOrgAccess()
+    .then(function (hasAccess) {
+      req.model.repoAccess = hasAccess;
+    },
+    function (err) {
+      req.model.error = 'Could not access github, error = ' + JSON.parse(err.message).message;
     })
-    .finally(function () {
+    .finally(function() {
       next();
     });
 }
@@ -81,31 +68,23 @@ function checkAccess(req, res, next) {
 // of the master auth repo?
 //
 function checkForFork(req, res, next) {
-  console.log('checking for fork');
+  debug('checking for fork');
   req.model.hasFork = false;
 
   if (!req.model.repoAccess) {
     return next();
   }
 
-  req.github.list('repos.getForks', masterRepo)
-    .firstOrDefault(function (fork) {
-      return fork.owner.login === req.user.username;
+  req.account.hasOrgRepoFork()
+    .then(function (hasFork) {
+      req.model.hasFork = hasFork;
+    },
+    function (err) {
+      req.model.error = 'Could not access github, error = ' + JSON.parse(err.message).message;
     })
-    .subscribe(
-      function onNext(fork) {
-        if (fork !== null) {
-          req.model.hasFork = true;
-        }
-      },
-      function onError(err) {
-        req.model.error = 'Error accessing github: ' + JSON.parse(err.message).message;
-        next();
-      },
-      function onCompleted() {
-        next();
-      }
-    );
+    .finally(function() {
+      next();
+    });
 }
 
 //
@@ -113,7 +92,8 @@ function checkForFork(req, res, next) {
 // into a single piece of middleware
 //
 router.use(checkAuthorization);
-router.use(createGithubClient);
+router.use(GitHubApi.createClient);
+router.use(githubAccount.createAccount);
 router.use(checkAccess);
 router.use(checkForFork);
 
