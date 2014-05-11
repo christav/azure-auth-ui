@@ -71,6 +71,33 @@ _.extend(GithubAccount.prototype, {
     debug('creating fork');
 
     return this.client.get('repos.fork', masterRepo);
+  },
+
+  getOrgFile: function () {
+    debug('downloading org file');
+
+    return this.client.get('repos.getContent', _.extend({ path: 'azure.json'}, masterRepo))
+      .then(function (content) {
+        debug('content downloaded');
+        var authData;
+
+        try {
+          var decoded = new Buffer(content.content, 'base64').toString();
+          authData = JSON.parse(decoded);
+
+          debug('content parsed');
+          return {
+            sha: content.sha,
+            content: JSON.parse(decoded)
+          }
+        } catch(ex) {
+          debug('failed to parse org data file');
+          return {
+            sha: content.sha,
+            error: 'Invalid JSON Data: ' + ex.message
+          }
+        }
+      });
   }
 });
 

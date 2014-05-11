@@ -88,6 +88,40 @@ function checkForFork(req, res, next) {
 }
 
 //
+// And finally - download the org data and pull out the organizations
+//
+
+function downloadOrgData(req, res, next) {
+  if (!req.model.repoAccess) {
+    return next();
+  }
+
+  req.account.getOrgFile()
+    .then(function (content) {
+      debug('received content');
+
+      req.model.content_sha = content.sha;
+      if (content.content) {
+        debug('has valid content');
+        req.model.organizations =
+          _.chain(content.content.organizations)
+            .keys()
+            .map(function (key) { return content.content.organizations[key]; })
+            .pluck('name')
+            .sortBy()
+            .value();
+      } else {
+        debug('content has error ' + content.error);
+        req.model.error = content.error;
+      }
+      next();
+    }, function (err) {
+      debug('error occurred while downloading');
+      next(err);
+    });
+}
+
+//
 // We use a router to compose our steps
 // into a single piece of middleware
 //
@@ -96,5 +130,6 @@ router.use(GitHubApi.createClient);
 router.use(githubAccount.createAccount);
 router.use(checkAccess);
 router.use(checkForFork);
+router.use(downloadOrgData);
 
 module.exports = router;
