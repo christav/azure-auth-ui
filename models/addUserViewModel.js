@@ -10,7 +10,7 @@ var router = express.Router();
 var githubAccount = require('./githubAccount');
 
 function loadAuthFile(req, res, next) {
-  req.model = {};
+  req.model = req.model || { };
 
   req.account.getOrgFile()
     .then(function (orgFile) {
@@ -19,7 +19,6 @@ function loadAuthFile(req, res, next) {
       req.model.orgs = _.chain(orgFile.content.organizations)
         .pairs()
         .map(function (pair) {
-          debug('mapping pair: ' + pair);
           return {
             displayName: pair[1].name,
             key: pair[0],
@@ -28,7 +27,6 @@ function loadAuthFile(req, res, next) {
         })
         .sortBy('displayName')
         .value();
-      debug('mapped values: ' + req.model.orgs);
       next();
     }, function (err) {
       next(err);
