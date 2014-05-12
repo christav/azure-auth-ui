@@ -1,7 +1,7 @@
 //
 // Some code to make the add user form more interactive
 //
-
+(function () {
   var organizationSelect;
   var organizationDescription;
 
@@ -19,4 +19,4 @@
   }
 
   document.addEventListener('DOMContentLoaded', onReady);
-
+}());

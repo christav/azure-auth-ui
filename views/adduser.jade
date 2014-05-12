@@ -21,6 +21,21 @@ block content
           option(value=org.key, selected= index === 0) #{org.displayName}
       #orgDescription
 
+    .users-to-add-group
+      label Users to add:
+
+      .row
+        .col-md-4.form-group
+            label(for='githubUser') Github user name
+            input#githubUser.form-control(type='text')
+
+        .col-md-4.form-group
+          label(for='microsoftAlias') Microsoft Alias
+          input#microsoftAlias.form-control(type='text')
+
+        .col.md-1
+          button#addButton.btn.btn-primary.add-user-btn Add User
+
   script(src='/javascripts/adduser.js')
 
 
