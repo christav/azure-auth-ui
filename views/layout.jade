@@ -20,11 +20,7 @@ html
         .collapse.navbar-collapse
           ul.nav.navbar-nav
             li.active
-              a(href='#') Home
-            li
-              a(href='#about') About
-            li
-              a(href='#contact') Contact
+              a(href='/') Home
             if !authorized
               a.navbar-text.navbar-right(href='/auth/login') Log in
             else

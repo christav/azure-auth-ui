@@ -1,0 +1,15 @@
+extends layout
+
+block head
+  title Add Users
+
+block content
+  h1 Add Users to an Organization
+
+  form
+    .form-group
+      label(for='organizationSelect') Choose the organization to add to:
+      select#organizationSelect.form-control(width='500px')
+        each org in orgs
+          option(value=org.key) #{org.displayName}
+

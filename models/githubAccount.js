@@ -88,8 +88,8 @@ _.extend(GithubAccount.prototype, {
           debug('content parsed');
           return {
             sha: content.sha,
-            content: JSON.parse(decoded)
-          }
+            content: authData
+          };
         } catch(ex) {
           debug('failed to parse org data file');
           return {
