@@ -6,10 +6,21 @@ block head
 block content
   h1 Add Users to an Organization
 
+  != "<script type='text/javascript'>"
+  != "var orgs = {"
+    - each org in orgs
+      != "'" + org.key + "': { description: '" + (org.description || "") + "'},"
+  != "};"
+  != "</script>"
+
   form
     .form-group
       label(for='organizationSelect') Choose the organization to add to:
-      select#organizationSelect.form-control(width='500px')
-        each org in orgs
-          option(value=org.key) #{org.displayName}
+      select#organizationSelect.form-control
+        each org, index in orgs
+          option(value=org.key, selected= index === 0) #{org.displayName}
+      #orgDescription
+
+  script(src='/javascripts/adduser.js')
+
 
