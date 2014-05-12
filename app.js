@@ -31,6 +31,7 @@ app.use(flash());
 app.use(authSetup);
 
 app.use('/', routes.root);
+app.use('/auth', routes.auth);
 app.use('/users', routes.users);
 
 /// catch 404 and forwarding to error handler

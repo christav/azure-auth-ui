@@ -26,9 +26,9 @@ html
             li
               a(href='#contact') Contact
             if !authorized
-              a.navbar-text.navbar-right(href='/users/login') Log in
+              a.navbar-text.navbar-right(href='/auth/login') Log in
             else
-              a.navbar-text.navbar-right(href='/users/logout') Log out
+              a.navbar-text.navbar-right(href='/auth/logout') Log out
 
     .container.content-block
         block content

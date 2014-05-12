@@ -8,7 +8,7 @@ block content
 
   if !authorized
     p In order to use this app, you must first log in to Github
-    a.btn.btn-primary.btn-lg.active(href='/users/login') Log into Github
+    a.btn.btn-primary.btn-lg.active(href='/auth/login') Log into Github
   else
     p Welcome, #{displayName}
     if error
