@@ -1,22 +1,25 @@
 //
 // Some code to make the add user form more interactive
 //
-(function () {
-  var organizationSelect;
-  var organizationDescription;
 
-  function onChange() {
-    var key = organizationSelect.selectedOptions[0].value;
-    organizationDescription.textContent = orgs[key].description;
+$(function () {
+
+  $('#organizationSelect').change(function () {
+    var key = $('#organizationSelect').val();
+    $('#orgDescription').text(orgs[key].description);
+  }).change();
+
+  function onUserChanged() {
+    var disabled = ($('#githubUser').val() === "") || ($('#microsoftAlias').val() === "");
+    if (disabled) {
+      $('#addUserButton').attr('disabled', 'disabled');
+    } else {
+      $('#addUserButton').removeAttr('disabled');
+    }
   }
 
-  function onReady() {
-    organizationSelect = document.getElementById('organizationSelect');
-    organizationDescription = document.getElementById('orgDescription');
+  onUserChanged();
 
-    organizationSelect.addEventListener('change', onChange);
-    onChange();
-  }
-
-  document.addEventListener('DOMContentLoaded', onReady);
-}());
+  $('#githubUser').on('change keypress paste input', onUserChanged);
+  $('#microsoftAlias').on('change keypress paste input', onUserChanged);
+});
