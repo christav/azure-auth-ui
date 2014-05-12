@@ -102,8 +102,12 @@ _.extend(GithubAccount.prototype, {
 });
 
 function createAccount(req, res, next) {
-  if (req.github && req.user) {
-    req.account = new GithubAccount(req.github, req.user.username);
+  if (req.user) {
+    debug('creating github client');
+    debug('access token = ' + req.user.accessToken);
+    var client = new GitHubApi(req.user.accessToken);
+    debug('creating github account model');
+    req.account = new GithubAccount(client, req.user.username);
   }
   next();
 }

@@ -4,13 +4,12 @@ block head
   title Azure Authorization UI
 
 block content
-  h1 Azure Authorization UI
 
   if !authorized
+    h1 Not logged in
     p In order to use this app, you must first log in to Github
     a.btn.btn-primary.btn-lg.active(href='/auth/login') Log into Github
   else
-    p Welcome, #{displayName}
     if error
       h1 Error contacting github: #{error}
     else if !repoAccess
@@ -20,9 +19,15 @@ block content
         the repository, or ask somebody else who does. Thanks!
     else
       if !hasFork
+        h1 Setup Required
         p You need a fork of the Azure/azure-github-organization repository in your account.
         form(action='/users/createfork', method='post')
           button.btn.btn-primary.btn-lg(type='submit') Create Fork
 
       else
-        p #{organizations}
+        h1 What do you want to do?
+        p
+          a.btn.btn-primary.btn-lg.active(href='/orgs/adduser') Give a user access
+        p
+          a.btn.btn-primary.btn-lg.active(href='/users/checkpermission') List a user's current permissions
+

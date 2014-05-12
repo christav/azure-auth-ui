@@ -12,7 +12,6 @@ var express = require('express');
 var router = express.Router();
 var util = require('util');
 
-var GitHubApi = require('../lib/github');
 var githubAccount = require('./githubAccount');
 
 var masterRepo = {
@@ -26,8 +25,10 @@ var masterRepo = {
 //
 function checkAuthorization(req, res, next) {
   if (!req.user) {
+    debug('user is not logged in');
     req.model = { authorized: false };
   } else {
+    debug('user is logged in');
     req.model = {
       authorized: true,
       username: req.user.username,
@@ -46,6 +47,7 @@ function checkAuthorization(req, res, next) {
 function checkAccess(req, res, next) {
   debug('Checking access');
   if (!req.account) {
+    debug('no account model');
     return next();
   }
 
@@ -72,6 +74,7 @@ function checkForFork(req, res, next) {
   req.model.hasFork = false;
 
   if (!req.model.repoAccess) {
+    debug('no repo access');
     return next();
   }
 
@@ -126,10 +129,8 @@ function downloadOrgData(req, res, next) {
 // into a single piece of middleware
 //
 router.use(checkAuthorization);
-router.use(GitHubApi.createClient);
 router.use(githubAccount.createAccount);
 router.use(checkAccess);
 router.use(checkForFork);
-router.use(downloadOrgData);
 
 module.exports = router;

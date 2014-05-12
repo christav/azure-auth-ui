@@ -11,7 +11,6 @@ var debug = require('debug')('azure-auth-ui:createForkModel');
 var express = require('express');
 var router = express.Router();
 
-var GitHubApi = require('../lib/github');
 var githubAccount = require('./githubAccount');
 var requiresAuth = require('../lib/requiresAuth');
 
@@ -61,7 +60,6 @@ function checkForFork(req, res, next) {
 var createForkRouter = express.Router();
 (function (router) {
   router.use(requiresAuth);
-  router.use(GitHubApi.createClient);
   router.use(githubAccount.createAccount);
   router.use(ensureNoFork);
   router.use(createFork);
@@ -71,7 +69,6 @@ var pollForForkRouter = express.Router();
 
 (function (router) {
   router.use(requiresAuth);
-  router.use(GitHubApi.createClient);
   router.use(githubAccount.createAccount);
   router.use(checkForFork);
 })(pollForForkRouter);
