@@ -40,5 +40,7 @@ $(function () {
   });
 
   // handling pressing the remove buttons
-  // TODO
+  $('.users-to-add-group').on('click', '.remove-user-btn', function () {
+    var row = $(this).parents('.row').remove();
+  });
 });
