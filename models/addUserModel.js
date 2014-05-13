@@ -36,6 +36,9 @@ function loadAuthFile(req, res, next) {
 function validateInput(req, res, next) {
   debug('validation goes here');
   debug('body: ' + util.inspect(req.body));
+  // TODO: Make sure to force the githubUser and microsoftAlias
+  // properties on the body to be arrays - if there's only
+  // one value, they'll come back as scalars.
   next();
 }
 
