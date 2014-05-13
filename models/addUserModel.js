@@ -5,7 +5,7 @@
 var _ = require('lodash');
 var debug = require('debug')('azure-auth-ui:addUserViewModel');
 var express = require('express');
-var router = express.Router();
+var util = require('util');
 
 var githubAccount = require('./githubAccount');
 
@@ -33,7 +33,39 @@ function loadAuthFile(req, res, next) {
     });
 }
 
+function validateInput(req, res, next) {
+  debug('validation goes here');
+  debug('body: ' + util.inspect(req.body));
+  next();
+}
+
+function generatePullRequest(req, res, next) {
+  debug('generating pull request goes here');
+  next();
+}
+
+function finalRedirect(req, res) {
+  debug('redirecting to home page');
+  res.redirect('/');
+}
+
+var inputPageRouter = express.Router();
+
+(function (router) {
 router.use(githubAccount.createAccount);
 router.use(loadAuthFile);
+}(inputPageRouter));
 
-module.exports = router;
+var processPostRouter = express.Router();
+
+(function (router) {
+  router.use(githubAccount.createAccount);
+  router.use(loadAuthFile);
+  router.use(validateInput);
+  router.use(generatePullRequest);
+  router.use(finalRedirect);
+}(processPostRouter
+));
+
+exports.uiModel = inputPageRouter;
+exports.submitModel = processPostRouter;

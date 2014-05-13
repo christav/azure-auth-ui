@@ -29,8 +29,8 @@ $(function () {
     var rowNum = $('.users-to-add-group .row').length - 1;
     var newRow = $('#userLineTemplate').clone();
     newRow.attr('id', 'userRow' + rowNum);
-    $('input:first', newRow).val($('#githubUser').val()).attr('name', 'githubUser' + rowNum);
-    $('input:last', newRow).val($('#microsoftAlias').val()).attr('name', 'microsoftAlias' + rowNum);
+    $('input:first', newRow).val($('#githubUser').val()).attr('readonly', 'readonly');
+    $('input:last', newRow).val($('#microsoftAlias').val()).attr('readonly', 'readonly');
 
     newRow.insertBefore($('.users-to-add-group .row:last'));
 

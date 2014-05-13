@@ -13,10 +13,10 @@ block content
   != "};"
   != "</script>"
 
-  form
+  form(method='post', action='/orgs/adduser')
     .form-group
       label(for='organizationSelect') Choose the organization to add to:
-      select#organizationSelect.form-control
+      select#organizationSelect.form-control(name='orgToUpdate')
         each org, index in orgs
           option(value=org.key, selected= index === 0) #{org.displayName}
       #orgDescription
@@ -25,11 +25,11 @@ block content
       .row
         .col-md-4.form-group
             label(for='githubUser') Github user name
-            input#githubUser.form-control(type='text')
+            input#githubUser.form-control(type='text',name='githubUser')
 
         .col-md-4.form-group
           label(for='microsoftAlias') Microsoft Alias
-          input#microsoftAlias.form-control(type='text')
+          input#microsoftAlias.form-control(type='text',name='microsoftAlias')
 
         .col.md-1
           button#addUserButton.btn.btn-primary.add-user-btn(type='button') Add User
@@ -38,10 +38,10 @@ block content
 
   #userLineTemplate.row
     .col-md-4
-      input.form-control(type='text')
+      input.form-control(type='text',name='githubUser')
 
     .col-md-4
-      input.form-control(type='text')
+      input.form-control(type='text',name='microsoftAlias')
 
     .col.md-1
       button.btn.btn-warning.remove-user-btn(type='button') Remove
