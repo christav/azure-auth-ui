@@ -36,7 +36,7 @@ app.use('/', routes.root);
 
 Object.keys(routes).forEach(function (routeName) {
   if (routeName !== 'root' && routeName !== 'test') {
-    console.log('Binding route ' + routeName);
+    debug('Binding route ' + routeName);
     app.use('/' + routeName, routes[routeName]);
   }
 });
