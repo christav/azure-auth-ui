@@ -26,6 +26,10 @@ body {
     margin-bottom: 15px;
 }
 
+#userLineTemplate {
+    display: none;
+}
+
 .add-user-btn {
     margin-top: 24px;
 }
@@ -35,3 +39,4 @@ body {
     top: 15px;
     right: 15px;
 }
+
