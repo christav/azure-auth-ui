@@ -42,7 +42,6 @@ _.extend(GithubAccount.prototype, {
     var self = this;
 
     var d = Q.defer();
-    var hasFork = false;
 
     this.client.list('repos.getForks', masterRepo)
       .first(function (fork) {
@@ -50,7 +49,6 @@ _.extend(GithubAccount.prototype, {
       })
       .subscribe(
         function onNext(fork) {
-          hasFork = true;
         },
         function onError(err) {
           if (err.message === 'Sequence contains no elements.') {
@@ -62,7 +60,7 @@ _.extend(GithubAccount.prototype, {
         },
         function onCompleted() {
           debug('user has fork');
-          d.resolve(hasFork);
+          d.resolve(true);
         });
     return d.promise;
   },
