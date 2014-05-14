@@ -6,6 +6,7 @@ var _ = require('lodash');
 var debug = require('debug')('azure-auth-ui:GithubAccount');
 var GitHubApi = require('../lib/github');
 var Q = require('q');
+var util = require('util');
 
 var masterRepo = {
   user: 'Azure',
@@ -100,28 +101,24 @@ _.extend(GithubAccount.prototype, {
 
   createUpdateFromMasterPullRequest: function () {
     var self = this;
-    return self.client.get('repos.getBranch', _.extend({ branch: 'master' }, masterRepo))
-      .then(function (upstreamBranchInfo) {
-        return self.client.get('repos.getBranch', { user: self.username, branch: 'master', repo: masterRepo.repo })
-          .then(function (localBranchInfo) {
-            return localBranchInfo.commit.sha !== upstreamBranchInfo.commit.sha;
-          });
-      }).then(function (localOutOfDate) {
-        if (localOutOfDate) {
-          return self.client.get('pullRequests.create', {
-            user: self.username,
-            repo: masterRepo.repo,
-            title: '[Do not merge] Sync to upstream',
-            body: 'Updating from upstream master branch',
-            base: 'master',
-            head: masterRepo.user + ':master'
-          }).then(function (pullRequest) {
-            return pullRequest.number;
-          });
-        } else {
-          return 0;
-        }
-      })
+    return self.client.get('pullRequests.create', {
+      user: self.username,
+      repo: masterRepo.repo,
+      title: '[Do not merge] Sync to upstream',
+      body: 'Updating from upstream master branch',
+      base: 'master',
+      head: masterRepo.user + ':master'
+    }).then(function (pullRequest) {
+      return pullRequest.number;
+    }, function (err) {
+      debug('Github PR creation failed, ' + util.inspect(err));
+      if (/no commits between/i.test(err.message)) {
+        debug('No updates in master, no PR needed');
+        return 0;
+      } else {
+        throw err;
+      }
+    });
   },
 
   mergeLocalPullRequest: function (prNumber) {
