@@ -42,6 +42,27 @@ function validateInput(req, res, next) {
   next();
 }
 
+function updateLocalFork(req, res, next) {
+  debug('Updating user repo from master');
+  req.account.createUpdateFromMasterPullRequest()
+    .then(function (prNumber) {
+      debug(prNumber === 0 ?
+        'Local fork is up to date' :
+        'PR number ' + prNumber + ' created');
+      if (prNumber !== 0) {
+        debug('merging update pr');
+        return req.account.mergeLocalPullRequest(prNumber);
+      }
+    })
+    .then(function (result) {
+      debug('merge result: ' + result);
+      next();
+    }, function (err) {
+      debug('Pull request creation failed, ' + util.inspect(err));
+      next(err);
+    });
+}
+
 function generatePullRequest(req, res, next) {
   debug('generating pull request goes here');
   next();
@@ -65,6 +86,7 @@ var processPostRouter = express.Router();
   router.use(githubAccount.createAccount);
   router.use(loadAuthFile);
   router.use(validateInput);
+  router.use(updateLocalFork);
   router.use(generatePullRequest);
   router.use(finalRedirect);
 }(processPostRouter

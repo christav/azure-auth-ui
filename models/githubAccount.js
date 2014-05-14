@@ -96,6 +96,46 @@ _.extend(GithubAccount.prototype, {
           }
         }
       });
+  },
+
+  createUpdateFromMasterPullRequest: function () {
+    var self = this;
+    return self.client.get('repos.getBranch', _.extend({ branch: 'master' }, masterRepo))
+      .then(function (upstreamBranchInfo) {
+        return self.client.get('repos.getBranch', { user: self.username, branch: 'master', repo: masterRepo.repo })
+          .then(function (localBranchInfo) {
+            return localBranchInfo.commit.sha !== upstreamBranchInfo.commit.sha;
+          });
+      }).then(function (localOutOfDate) {
+        if (localOutOfDate) {
+          return self.client.get('pullRequests.create', {
+            user: self.username,
+            repo: masterRepo.repo,
+            title: '[Do not merge] Sync to upstream',
+            body: 'Updating from upstream master branch',
+            base: 'master',
+            head: masterRepo.user + ':master'
+          }).then(function (pullRequest) {
+            return pullRequest.number;
+          });
+        } else {
+          return 0;
+        }
+      })
+  },
+
+  mergeLocalPullRequest: function (prNumber) {
+    var self = this;
+
+    return self.client.get('pullRequests.merge', {
+      user: self.username,
+      repo: masterRepo.repo,
+      number: prNumber,
+      commit_message: 'Update from upstream'
+    })
+    .then(function (result) {
+      return result.merged;
+    })
   }
 });
 
