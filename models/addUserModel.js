@@ -5,14 +5,16 @@
 var _ = require('lodash');
 var debug = require('debug')('azure-auth-ui:addUserViewModel');
 var express = require('express');
+var Q = require('q');
 var util = require('util');
+var promiseUtils = require('../lib/promise-utils');
 
 var githubAccount = require('./githubAccount');
 
-function loadAuthFile(req, res, next) {
+function loadAuthFile(req, res) {
   req.model = req.model || { };
 
-  req.account.getOrgFile()
+  return req.account.getOrgFile()
     .then(function (orgFile) {
       debug('orgFile retrieved, transforming into model');
 
@@ -27,24 +29,22 @@ function loadAuthFile(req, res, next) {
         })
         .sortBy('displayName')
         .value();
-      next();
-    }, function (err) {
-      next(err);
     });
 }
 
-function validateInput(req, res, next) {
-  debug('validation goes here');
-  debug('body: ' + util.inspect(req.body));
-  // TODO: Make sure to force the githubUser and microsoftAlias
-  // properties on the body to be arrays - if there's only
-  // one value, they'll come back as scalars.
-  next();
+function validateInput(req, res) {
+  return Q.fcall(function () {
+    debug('validation goes here');
+    debug('body: ' + util.inspect(req.body));
+    // TODO: Make sure to force the githubUser and microsoftAlias
+    // properties on the body to be arrays - if there's only
+    // one value, they'll come back as scalars.
+  });
 }
 
-function updateLocalFork(req, res, next) {
+function updateLocalFork(req, res) {
   debug('Updating user repo from master');
-  req.account.createUpdateFromMasterPullRequest()
+  return req.account.createUpdateFromMasterPullRequest()
     .then(function (prNumber) {
       debug(prNumber === 0 ?
         'Local fork is up to date' :
@@ -56,41 +56,44 @@ function updateLocalFork(req, res, next) {
     })
     .then(function (result) {
       debug('merge result: ' + result);
-      next();
     }, function (err) {
       debug('Pull request creation failed, ' + util.inspect(err));
-      next(err);
+      throw err;
     });
 }
 
-function generatePullRequest(req, res, next) {
-  debug('generating pull request goes here');
-  next();
+function generatePullRequest(req, res) {
+  return Q.fcall(function () {
+    debug('generating pull request goes here');
+  });
 }
 
 function finalRedirect(req, res) {
-  debug('redirecting to home page');
-  res.redirect('/');
+  return Q.fcall(function () {
+    debug('redirecting to home page');
+    res.redirect('/');
+    return true;
+  });
 }
 
 var inputPageRouter = express.Router();
 
 (function (router) {
 router.use(githubAccount.createAccount);
-router.use(loadAuthFile);
+router.use(promiseUtils.middlewareify(loadAuthFile));
 }(inputPageRouter));
 
 var processPostRouter = express.Router();
 
 (function (router) {
   router.use(githubAccount.createAccount);
-  router.use(loadAuthFile);
-  router.use(validateInput);
-  router.use(updateLocalFork);
-  router.use(generatePullRequest);
-  router.use(finalRedirect);
-}(processPostRouter
-));
+  promiseUtils.usePromise(router, 
+    loadAuthFile, 
+    validateInput, 
+    updateLocalFork, 
+    generatePullRequest, 
+    finalRedirect);
+}(processPostRouter));
 
 exports.uiModel = inputPageRouter;
 exports.submitModel = processPostRouter;
