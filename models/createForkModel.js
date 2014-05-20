@@ -19,7 +19,7 @@ var requiresAuth = require('../lib/requiresAuth');
 // Make sure user doesn't have a fork - if so redirect to home page
 //
 function ensureNoFork(req, res) {
-  req.account.hasOrgRepoFork()
+  return req.account.hasOrgRepoFork()
     .then(function (hasRepo) {
       if (hasRepo) {
         res.redirect('/');
@@ -30,7 +30,7 @@ function ensureNoFork(req, res) {
 
 function createFork(req, res) {
   debug('creating fork');
-  req.account.createOrgRepoFork()
+  return req.account.createOrgRepoFork()
     .then(function () {
       debug('request to create completed');
       res.redirect('/users/waitforfork');
@@ -40,7 +40,7 @@ function createFork(req, res) {
 
 function checkForFork(req, res) {
   debug('checking if user has fork');
-  req.account.hasOrgRepoFork()
+  return req.account.hasOrgRepoFork()
     .then(function (hasRepo) {
       if (hasRepo) {
         debug('user has fork');
