@@ -6,6 +6,7 @@ var _ = require('lodash');
 var debug = require('debug')('azure-auth-ui:GithubAccount');
 var GitHubApi = require('../lib/github');
 var Q = require('q');
+var sfmt = require('../lib/sfmt');
 var util = require('util');
 
 var masterRepo = {
@@ -42,29 +43,27 @@ _.extend(GithubAccount.prototype, {
 
     var self = this;
 
-// TODO: Replace deferred with Q.promise
-    var d = Q.defer();
-
-    this.client.list('repos.getForks', masterRepo)
-      .first(function (fork) {
-        return fork.owner.login === self.username;
-      })
-      .subscribe(
-        function onNext(fork) {
-        },
-        function onError(err) {
-          if (err.message === 'Sequence contains no elements.') {
-            debug('user does not have a fork');
-            d.resolve(false);
-          } else {
-            d.reject(err);
-          }
-        },
-        function onCompleted() {
-          debug('user has fork');
-          d.resolve(true);
-        });
-    return d.promise;
+    return Q.promise(function (resolve, reject) {
+      self.client.list('repos.getForks', masterRepo)
+        .first(function (fork) {
+          return fork.owner.login === self.username;
+        })
+        .subscribe(
+          function onNext(fork) {
+          },
+          function onError(err) {
+            if (err.message === 'Sequence contains no elements.') {
+              debug('user does not have a fork');
+              resolve(false);
+            } else {
+              reject(err);
+            }
+          },
+          function onCompleted() {
+            debug('user has fork');
+            resolve(true);
+          });
+    });
   },
 
   createOrgRepoFork: function () {
@@ -150,15 +149,24 @@ _.extend(GithubAccount.prototype, {
     })
   },
 
-  createBranch: function (baseBranch,, newBranchName) {
+  createUpdateBranch: function () {
     var self = this;
 
-    rturn self.getBranchSha(baseBranch)
+    return self.getUniqueBranchName('auth-request')
+      .then (function (branchName) {
+        return self.createBranch('master', branchName);
+      });
+  },
+
+  createBranch: function (baseBranch, newBranchName) {
+    var self = this;
+
+    return self.getBranchSha(baseBranch)
       .then(function (baseBranchSha) {
         return self.client.get('gitdata.createReference', {
           user: self.username,
           repo: masterRepo.repo,
-          ref: 'heads/' + newBrancName,
+          ref: 'refs/heads/' + newBranchName,
           sha: baseBranchSha
         });
       });
@@ -174,18 +182,30 @@ _.extend(GithubAccount.prototype, {
       })
       .filter(function (ref) { return /^refs\/heads\//.test(ref.ref); })
       .map(function (ref) {
-
+        return ref.ref.slice('refs/heads/'.length);
       })
-      .subscribe(function onNext(ref) {
-        names.push(ref.)
+      .subscribe(function onNext(name) {
+        names.push(name);
       },
-      function onNext(err) {
+
+      function onError(err) {
         reject(err);
       },
 
       function onComplete() {
-        
+        debug(sfmt('Current branch names: %s', names.join(', ')));
+        resolve(names);
       });
+    }).then(function (names) {
+      var nameFormat = '%{0:s}-%{1:d}';
+      var num = 1;
+      var branchName = sfmt(nameFormat, rootOfName, num);
+      while (_.contains(names, branchName)) {
+        ++num;
+        branchName = sfmt(nameFormat, rootOfName, num);
+      }
+      debug(sfmt('branch name to be created: %s', branchName));
+      return branchName;
     });
   }
 });

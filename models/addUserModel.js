@@ -64,7 +64,10 @@ function updateLocalFork(req, res) {
 
 function generatePullRequest(req, res) {
   debug('creating pull request for update');
-  return req.account.createBranch('master', )
+  return req.account.createUpdateBranch()
+    .then(function (branchRef) {
+      debug('created branch ' + branchRef.ref);
+    });
 }
 
 function finalRedirect(req, res) {
@@ -86,11 +89,11 @@ var processPostRouter = express.Router();
 
 (function (router) {
   router.use(githubAccount.createAccount);
-  promiseUtils.usePromise(router, 
-    loadAuthFile, 
-    validateInput, 
-    updateLocalFork, 
-    generatePullRequest, 
+  promiseUtils.usePromise(router,
+    loadAuthFile,
+    validateInput,
+    updateLocalFork,
+    generatePullRequest,
     finalRedirect);
 }(processPostRouter));
 
