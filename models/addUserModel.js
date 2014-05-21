@@ -63,9 +63,8 @@ function updateLocalFork(req, res) {
 }
 
 function generatePullRequest(req, res) {
-  return Q.fcall(function () {
-    debug('generating pull request goes here');
-  });
+  debug('creating pull request for update');
+  return req.account.createBranch('master', )
 }
 
 function finalRedirect(req, res) {

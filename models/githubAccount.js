@@ -42,6 +42,7 @@ _.extend(GithubAccount.prototype, {
 
     var self = this;
 
+// TODO: Replace deferred with Q.promise
     var d = Q.defer();
 
     this.client.list('repos.getForks', masterRepo)
@@ -133,6 +134,59 @@ _.extend(GithubAccount.prototype, {
     .then(function (result) {
       return result.merged;
     })
+  },
+
+  getBranchSha: function (branchName) {
+    var self = this;
+
+    return self.client.get('gitdata.getReference', {
+      user: self.username,
+      repo: masterRepo.repo,
+      ref: 'heads/' + branchName
+    })
+    .then(function (result) {
+      debug(util.format('branch %s points at commit %s', branchName, result.object.sha));
+      return result.object.sha;
+    })
+  },
+
+  createBranch: function (baseBranch,, newBranchName) {
+    var self = this;
+
+    rturn self.getBranchSha(baseBranch)
+      .then(function (baseBranchSha) {
+        return self.client.get('gitdata.createReference', {
+          user: self.username,
+          repo: masterRepo.repo,
+          ref: 'heads/' + newBrancName,
+          sha: baseBranchSha
+        });
+      });
+  },
+
+  getUniqueBranchName: function (rootOfName) {
+    var self = this;
+    var names = [];
+    return Q.promise(function (resolve, reject) {
+      self.client.list('gitdata.getAllReferences', {
+        user: self.username,
+        repo: masterRepo.repo
+      })
+      .filter(function (ref) { return /^refs\/heads\//.test(ref.ref); })
+      .map(function (ref) {
+
+      })
+      .subscribe(function onNext(ref) {
+        names.push(ref.)
+      },
+      function onNext(err) {
+        reject(err);
+      },
+
+      function onComplete() {
+        
+      });
+    });
   }
 });
 
