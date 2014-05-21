@@ -65,9 +65,15 @@ function updateLocalFork(req, res) {
 function generatePullRequest(req, res) {
   debug('creating pull request for update');
   return req.account.createUpdateBranch()
-    .then(function (branchRef) {
-      debug('created branch ' + branchRef.ref);
-    });
+  .then(function (branchName) {
+    debug('created branch ' + branchName);
+
+    var authContent = "Destroy the file!";
+    return req.account.updateAuthFile(branchName, authContent);
+  })
+  .then(function (updateResult) {
+    debug('file updated, new commit id = ' + updateResult.commit.sha);
+  });
 }
 
 function finalRedirect(req, res) {

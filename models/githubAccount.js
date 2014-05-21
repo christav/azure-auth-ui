@@ -75,7 +75,7 @@ _.extend(GithubAccount.prototype, {
   getOrgFile: function () {
     debug('downloading org file');
 
-    return this.client.get('repos.getContent', _.extend({ path: 'azure.json'}, masterRepo))
+    return this.client.get('repos.getContent', _.extend({ path: 'azure.json' }, masterRepo))
       .then(function (content) {
         debug('content downloaded');
         var authData;
@@ -154,7 +154,10 @@ _.extend(GithubAccount.prototype, {
 
     return self.getUniqueBranchName('auth-request')
       .then (function (branchName) {
-        return self.createBranch('master', branchName);
+        return self.createBranch('master', branchName)
+          .then(function (branchCreate) {
+            return branchName;
+          });
       });
   },
 
@@ -206,6 +209,31 @@ _.extend(GithubAccount.prototype, {
       }
       debug(sfmt('branch name to be created: %s', branchName));
       return branchName;
+    });
+  },
+
+  updateAuthFile: function (authBranchName, newAuthContent) {
+    var self = this;
+    return self.client.get('repos.getContent', {
+      path: 'azure.json',
+      user: self.username,
+      repo: masterRepo.repo,
+      ref: 'refs/heads/' + authBranchName })
+    .then(function (authContent) {
+      var originalSha = authContent.sha;
+      return self.client.get('repos.updateFile', {
+        user: self.username,
+        repo: masterRepo.repo,
+        path: 'azure.json',
+        message: 'New authorization update',
+        content: new Buffer(newAuthContent).toString('base64'),
+        sha: originalSha,
+        branch: authBranchName
+      });
+    })
+    .then(function (updateResponse) {
+      debug(sfmt('Content updated with commit %s', updateResponse.commit.sha));
+      return updateResponse;
     });
   }
 });
