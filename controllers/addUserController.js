@@ -3,13 +3,13 @@
 //
 
 var _ = require('lodash');
-var debug = require('debug')('azure-auth-ui:addUserViewModel');
+var debug = require('debug')('azure-auth-ui:addUserController');
 var express = require('express');
 var Q = require('q');
 var util = require('util');
 var promiseUtils = require('../lib/promise-utils');
 
-var githubAccount = require('./githubAccount');
+var githubAccount = require('../models/githubAccount');
 
 function loadAuthFile(req, res) {
   req.model = req.model || { };
@@ -104,5 +104,5 @@ var processPostRouter = express.Router();
     finalRedirect);
 }(processPostRouter));
 
-exports.uiModel = inputPageRouter;
-exports.submitModel = processPostRouter;
+exports.get = inputPageRouter;
+exports.post = processPostRouter;

@@ -5,11 +5,11 @@
 var express = require('express');
 var router = express.Router();
 
-var addUserModel = require('../models/addUserModel');
+var controller = require('../controllers/addUserController');
 var render = require('../lib/render');
 var requiresAuth = require('../lib/requiresAuth');
 
 router.use(requiresAuth);
-router.get('/adduser', addUserModel.uiModel, render.template('adduser'));
-router.post('/adduser', addUserModel.submitModel);
+router.get('/adduser', controller.get, render.template('adduser'));
+router.post('/adduser', controller.post);
 module.exports = router;
