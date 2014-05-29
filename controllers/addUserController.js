@@ -10,26 +10,15 @@ var util = require('util');
 var promiseUtils = require('../lib/promise-utils');
 
 var githubAccount = require('../models/githubAccount');
+var AzureOrganization = require('../models/azureOrganization');
 
 function loadAuthFile(req, res) {
   req.model = req.model || { };
 
   return req.account.getOrgFile()
     .then(function (orgFile) {
-      debug('orgFile retrieved, transforming into model');
-
-      req.model.orgs = _.chain(orgFile.content.organizations)
-        .pairs()
-        .map(function (pair) {
-          return {
-            displayName: pair[1].name,
-            key: pair[0],
-            description: pair[1].purpose
-          };
-        })
-        .sortBy('displayName')
-        .value();
-      req.model.orgFile = orgFile;
+      req.model = new AzureOrganization(orgFile.content);
+      req.model.orgs = req.model.getOrganizations();
     });
 }
 
