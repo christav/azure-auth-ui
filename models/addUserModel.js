@@ -29,6 +29,7 @@ function loadAuthFile(req, res) {
         })
         .sortBy('displayName')
         .value();
+      req.model.orgFile = orgFile;
     });
 }
 
