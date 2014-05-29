@@ -238,6 +238,25 @@ _.extend(GithubAccount.prototype, {
       debug(sfmt('Content updated with commit %s', updateResponse.commit.sha));
       return updateResponse;
     });
+  },
+
+  userExists: function (user) {
+    var self = this;
+    return self.client.get('user.getFrom', { user: user })
+      .then(function (userData) {
+        return true;
+      }, function (err) {
+        var errDetails = JSON.parse(err.message);
+        if (errDetails.message === 'Not Found') {
+          return false;
+        }
+        throw err;
+      });
+  },
+
+  usersExist: function (users) {
+    var self = this;
+    return Q.all(users.map(function (user) { return self.userExists(user); }));
   }
 });
 
