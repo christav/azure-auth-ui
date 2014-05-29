@@ -7,12 +7,12 @@
 'use strict';
 
 var _ = require('lodash');
-var debug = require('debug')('azure-auth-ui:createForkModel');
+var debug = require('debug')('azure-auth-ui:createForkController');
 var express = require('express');
 var router = express.Router();
 
 var middlewareify = require('../lib/promise-utils').middlewareify;
-var githubAccount = require('./githubAccount');
+var githubAccount = require('../models/githubAccount');
 var requiresAuth = require('../lib/requiresAuth');
 
 //
