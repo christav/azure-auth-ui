@@ -2,6 +2,8 @@
 // route for org operations
 //
 
+'use strict';
+
 var express = require('express');
 var router = express.Router();
 

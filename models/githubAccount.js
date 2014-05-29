@@ -2,6 +2,8 @@
 // Model representing user's github account.
 //
 
+'use strict';
+
 var _ = require('lodash');
 var debug = require('debug')('azure-auth-ui:GithubAccount');
 var GitHubApi = require('../lib/github');
