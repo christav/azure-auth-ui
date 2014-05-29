@@ -13,7 +13,7 @@ function AzureOrganization(parsedOrgFile) {
 
 _.extend(AzureOrganization.prototype, {
   getOrganizations: function () {
-    return _.chain(this.orgData)
+    return _.chain(this.orgData.organizations)
       .pairs()
       .map(function (pair) {
         return {

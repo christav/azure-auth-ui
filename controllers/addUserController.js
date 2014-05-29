@@ -17,6 +17,7 @@ function loadAuthFile(req, res) {
 
   return req.account.getOrgFile()
     .then(function (orgFile) {
+      debug('org file loaded');
       req.model = new AzureOrganization(orgFile.content);
       req.model.orgs = req.model.getOrganizations();
     });
@@ -75,23 +76,17 @@ function finalRedirect(req, res) {
 }
 
 var inputPageRouter = express.Router();
+inputPageRouter.use(githubAccount.createAccount);
+inputPageRouter.usePromise(loadAuthFile);
 
-(function (router) {
-router.use(githubAccount.createAccount);
-router.use(promiseUtils.middlewareify(loadAuthFile));
-}(inputPageRouter));
 
 var processPostRouter = express.Router();
-
-(function (router) {
-  router.use(githubAccount.createAccount);
-  promiseUtils.usePromise(router,
-    loadAuthFile,
-    validateInput,
-    updateLocalFork,
-    generatePullRequest,
-    finalRedirect);
-}(processPostRouter));
+processPostRouter.use(githubAccount.createAccount);
+processPostRouter.usePromise(loadAuthFile);
+processPostRouter.usePromise(validateInput);
+processPostRouter.usePromise(updateLocalFork);
+processPostRouter.usePromise(generatePullRequest);
+processPostRouter.usePromise(finalRedirect);
 
 exports.get = inputPageRouter;
 exports.post = processPostRouter;
