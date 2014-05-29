@@ -1,18 +1,18 @@
 //
-// Model for the root url. Includes model class implementation
-// plus a middleware function to load the model from the
+// Controller for the root url. Includes a middleware
+// function to load the model from the
 // request. Places the model object on req.model.
 //
 
 'use strict';
 
 var _ = require('lodash');
-var debug = require('debug')('azure-auth-ui:rootModel');
+var debug = require('debug')('azure-auth-ui:rootController');
 var express = require('express');
 var router = express.Router();
 var util = require('util');
 
-var githubAccount = require('./githubAccount');
+var githubAccount = require('../models/githubAccount');
 
 var masterRepo = {
   user: 'Azure',
