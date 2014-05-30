@@ -13,14 +13,19 @@ var githubAccount = require('../models/githubAccount');
 var AzureOrganization = require('../models/azureOrganization');
 
 function loadAuthFile(req, res) {
-  req.model = req.model || { };
-
   return req.account.getOrgFile()
     .then(function (orgFile) {
-      debug('org file loaded');
-      req.model = new AzureOrganization(orgFile.content);
-      req.model.orgs = req.model.getOrganizations();
+      req.orgFile = new AzureOrganization(orgFile.content);
     });
+}
+
+function orgFileToEmptyReadModel(req, res, next) {
+  req.model = {
+    orgs: req.orgFile.getOrganizations(),
+    users: [],
+    errors: []
+  };
+  next();
 }
 
 function validateInput(req, res) {
@@ -78,7 +83,7 @@ function finalRedirect(req, res) {
 var inputPageRouter = express.Router();
 inputPageRouter.use(githubAccount.createAccount);
 inputPageRouter.usePromise(loadAuthFile);
-
+inputPageRouter.use(orgFileToEmptyReadModel);
 
 var processPostRouter = express.Router();
 processPostRouter.use(githubAccount.createAccount);
