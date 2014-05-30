@@ -7,10 +7,16 @@ var debug = require('debug')('azure-auth-ui:addUserController');
 var express = require('express');
 var Q = require('q');
 var util = require('util');
+
 var promiseUtils = require('../lib/promise-utils');
+var render = require('../lib/render');
 
 var githubAccount = require('../models/githubAccount');
 var AzureOrganization = require('../models/azureOrganization');
+
+//
+// Middleware used on get request to the add user page
+//
 
 function loadAuthFile(req, res) {
   return req.account.getOrgFile()
@@ -20,22 +26,51 @@ function loadAuthFile(req, res) {
 }
 
 function orgFileToEmptyReadModel(req, res, next) {
+  var orgs = req.orgFile.getOrganizations();
+
   req.model = {
-    orgs: req.orgFile.getOrganizations(),
+    orgs: orgs,
+    selectedOrg: orgs[0].key,
     users: [],
     errors: []
   };
   next();
 }
 
-function validateInput(req, res) {
-  return Q.fcall(function () {
-    debug('validation goes here');
-    debug('body: ' + util.inspect(req.body));
-    // TODO: Make sure to force the githubUser and microsoftAlias
-    // properties on the body to be arrays - if there's only
-    // one value, they'll come back as scalars.
-  });
+var inputPageRouter = express.Router();
+inputPageRouter.use(githubAccount.createAccount);
+inputPageRouter.usePromise(loadAuthFile);
+inputPageRouter.use(orgFileToEmptyReadModel);
+
+
+//
+// Middleware used when posted for the add user page.
+//
+
+function requestToPostModel(req, res, next) {
+  req.input = {
+    orgId: req.body['orgToUpdate'],
+    users: _.zip(_.flatten(req.body['githubUser']), _.flatten(req.body['microsoftAlias']))
+      .map(function (pair) { return {
+        githubUser: pair[0],
+        microsoftAlias: pair[1]
+      }})
+  };
+  next();
+}
+
+function validateInput(req, res, next) {
+  req.model = {
+    orgs: req.orgFile.getOrganizations(),
+    selectedOrg: req.input.orgId,
+    users: req.input.users.map(function (user) {
+      user.githubUser = 'x' + user.githubUser;
+      return user;
+    }),
+    errors: ['None shall pass!']
+  };
+
+  render.template('adduser')(req, res);
 }
 
 function updateLocalFork(req, res) {
@@ -80,18 +115,15 @@ function finalRedirect(req, res) {
   });
 }
 
-var inputPageRouter = express.Router();
-inputPageRouter.use(githubAccount.createAccount);
-inputPageRouter.usePromise(loadAuthFile);
-inputPageRouter.use(orgFileToEmptyReadModel);
 
 var processPostRouter = express.Router();
 processPostRouter.use(githubAccount.createAccount);
 processPostRouter.usePromise(loadAuthFile);
+processPostRouter.use(requestToPostModel);
 processPostRouter.usePromise(validateInput);
-processPostRouter.usePromise(updateLocalFork);
-processPostRouter.usePromise(generatePullRequest);
-processPostRouter.usePromise(finalRedirect);
+// processPostRouter.usePromise(updateLocalFork);
+// processPostRouter.usePromise(generatePullRequest);
+// processPostRouter.usePromise(finalRedirect);
 
 exports.get = inputPageRouter;
 exports.post = processPostRouter;

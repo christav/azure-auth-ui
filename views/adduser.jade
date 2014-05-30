@@ -18,7 +18,7 @@ block content
       label(for='organizationSelect') Choose the organization to add to:
       select#organizationSelect.form-control(name='orgToUpdate')
         each org, index in orgs
-          option(value=org.key, selected= index === 0) #{org.displayName}
+          option(value=org.key, selected= org.key === selectedOrg) #{org.displayName}
       #orgDescription
 
     .users-to-add-group
