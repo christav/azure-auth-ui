@@ -2,34 +2,34 @@ extends layout
 
 block head
   title Add Users
+  script(src='/knockout/dist/knockout.js')
 
 block content
   h1 Add Users to an Organization
 
   != "<script type='text/javascript'>"
-  != "var orgs = {"
+  != "var orgs = ["
     - each org in orgs
-      != "'" + org.key + "': { description: '" + (org.description || "") + "'},"
-  != "};"
+      != "{ key: '" + org.key + "', description: '" + (org.description || "") + "', displayName: '" + org.displayName + "'},"
+  != "];"
   != "</script>"
 
   form(method='post', action='/orgs/adduser')
     .form-group
       label(for='organizationSelect') Choose the organization to add to:
-      select#organizationSelect.form-control(name='orgToUpdate')
-        each org, index in orgs
-          option(value=org.key, selected= org.key === selectedOrg) #{org.displayName}
-      #orgDescription
+      select#organizationSelect.form-control(name='orgToUpdate', data-bind='options: organizations, optionsText: "displayName", value: selectedOrganization')
+
+      #organizationDescription(data-bind='text: selectedOrganization().description')
 
     .users-to-add-group
       .row
         .col-md-4.form-group
             label(for='githubUser') Github user name
-            input#githubUser.form-control(type='text',name='githubUser')
+            input#githubUser.form-control(type='text',name='githubUserAdd')
 
         .col-md-4.form-group
           label(for='microsoftAlias') Microsoft Alias
-          input#microsoftAlias.form-control(type='text',name='microsoftAlias')
+          input#microsoftAlias.form-control(type='text',name='microsoftAliasAdd')
 
         .col.md-1
           button#addUserButton.btn.btn-primary.add-user-btn(type='button') Add User
