@@ -27,7 +27,8 @@
     self.addUser = function () {
       self.users.push({
         githubUser: self.githubUserToAdd().trim(),
-        microsoftAlias: self.microsoftAliasToAdd().trim()
+        microsoftAlias: self.microsoftAliasToAdd().trim(),
+        errorMessage: ""
       });
       self.githubUserToAdd('');
       self.microsoftAliasToAdd('');

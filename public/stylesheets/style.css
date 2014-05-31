@@ -43,3 +43,8 @@ body {
 .to-add {
     margin-bottom: 5px;
 }
+
+.user-error {
+    margin-left: 45px;
+    color: red;
+}

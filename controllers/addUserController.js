@@ -66,6 +66,7 @@ function validateInput(req, res, next) {
     selectedOrg: req.input.orgId,
     users: req.input.users.map(function (user) {
       user.githubUser = 'x' + user.githubUser;
+      user.errorMessage = 'Test message';
       return user;
     }),
     errors: ['None shall pass!']
