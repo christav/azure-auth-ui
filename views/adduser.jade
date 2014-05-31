@@ -30,7 +30,7 @@ block content
 
     .users-to-add-group
       div(data-bind='foreach: users')
-        .row
+        .row.to-add
           .col-md-4
             input.form-control(type='text', name='githubUser',readonly,data-bind='value: githubUser')
 
@@ -52,7 +52,7 @@ block content
         .col.md-1
           button#addUserButton.btn.btn-primary.add-user-btn(type='button', data-bind='enable: enableAdd, click: addUser') Add User
 
-      button.btn.btn-warning.submit-add-user-btn(type='submit',value='Send Request') Send Request
+      button.btn.btn-warning.submit-add-user-btn(type='submit',value='Send Request', data-bind='enable: users().length > 0') Send Request
 
   script(src='/javascripts/adduser.js')
 

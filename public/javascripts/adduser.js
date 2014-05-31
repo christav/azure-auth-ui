@@ -26,8 +26,8 @@
 
     self.addUser = function () {
       self.users.push({
-        githubUser: self.githubUserToAdd(),
-        microsoftAlias: self.microsoftAliasToAdd()
+        githubUser: self.githubUserToAdd().trim(),
+        microsoftAlias: self.microsoftAliasToAdd().trim()
       });
       self.githubUserToAdd('');
       self.microsoftAliasToAdd('');
@@ -40,6 +40,7 @@
   }
 
   $(function () {
-    ko.applyBindings(new AddUserViewModel(orgs, users));
+    window.viewModel = new AddUserViewModel(orgs, users);
+    ko.applyBindings(viewModel);
   });
 }());
