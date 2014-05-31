@@ -12,39 +12,47 @@ block content
     - each org in orgs
       != "{ key: '" + org.key + "', description: '" + (org.description || "") + "', displayName: '" + org.displayName + "'},"
   != "];"
+
+  != "var users = ["
+    - each user in users
+      != "{ githubUser: '" + user.githubUser + "', microsoftAlias: '" + user.microsoftAlias + "'},"
+  != "];"
   != "</script>"
 
   form(method='post', action='/orgs/adduser')
     .form-group
       label(for='organizationSelect') Choose the organization to add to:
-      select#organizationSelect.form-control(name='orgToUpdate', data-bind='options: organizations, optionsText: "displayName", value: selectedOrganization')
+      select#organizationSelect.form-control(data-bind='options: organizations, optionsText: "displayName", value: selectedOrganization')
 
       #organizationDescription(data-bind='text: selectedOrganization().description')
 
+      input#orgToUpdate(type='hidden', name='orgToUpdate', data-bind='value: selectedOrganization().key')
+
     .users-to-add-group
+      div(data-bind='foreach: users')
+        .row
+          .col-md-4
+            input.form-control(type='text', name='githubUser',readonly,data-bind='value: githubUser')
+
+          .col-md-4
+            input.form-control(type='text', name='microsoftAlias',readonly,data-bind='value: microsoftAlias')
+
+          .col.md-1
+            button.btn.btn.warning.remove-user-btn(type='button', data-bind='click: parent.removeUser') Remove
+
       .row
         .col-md-4.form-group
             label(for='githubUser') Github user name
-            input#githubUser.form-control(type='text',name='githubUserAdd')
+            input#githubUser.form-control(type='text',data-bind='value: githubUserToAdd, valueUpdate: "input"')
 
         .col-md-4.form-group
           label(for='microsoftAlias') Microsoft Alias
-          input#microsoftAlias.form-control(type='text',name='microsoftAliasAdd')
+          input#microsoftAliasToAdd.form-control(type='text',data-bind='value: microsoftAliasToAdd, valueUpdate: "input"')
 
         .col.md-1
-          button#addUserButton.btn.btn-primary.add-user-btn(type='button') Add User
+          button#addUserButton.btn.btn-primary.add-user-btn(type='button', data-bind='enable: enableAdd, click: addUser') Add User
 
       button.btn.btn-warning.submit-add-user-btn(type='submit',value='Send Request') Send Request
-
-  #userLineTemplate.row
-    .col-md-4
-      input.form-control(type='text',name='githubUser')
-
-    .col-md-4
-      input.form-control(type='text',name='microsoftAlias')
-
-    .col.md-1
-      button.btn.btn-warning.remove-user-btn(type='button') Remove
 
   script(src='/javascripts/adduser.js')
 

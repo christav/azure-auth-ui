@@ -4,13 +4,47 @@
 
 (function () {
 
-  function AddUserViewModel(orgData) {
-    this.organizations = orgData;
-    this.selectedOrganization = ko.observable();
+  function AddUserViewModel(orgData, userData) {
+    var self = this;
+
+    self.organizations = orgData;
+    self.selectedOrganization = ko.observable();
+    self.orgToUpdate = ko.computed(function () {
+      if (self.selectedOrganization()) {
+        return self.selectedOrganization().key;
+      }
+    });
+
+    self.users = ko.observableArray(userData.map(function (user) {
+      user.parent = self;
+      return user;
+    }));
+
+    self.githubUserToAdd = ko.observable();
+    self.microsoftAliasToAdd = ko.observable();
+
+    self.removeUser = function (user) {
+      self.users.remove(user);
+    };
+
+    self.addUser = function () {
+      self.users.push({
+        githubUser: self.githubUserToAdd(),
+        microsoftAlias: self.microsoftAliasToAdd(),
+        parent: self
+      });
+      self.githubUserToAdd('');
+      self.microsoftAliasToAdd('');
+      $('#githubUser').focus();
+    };
+
+    self.enableAdd = ko.computed(function () {
+      return self.githubUserToAdd() && self.microsoftAliasToAdd();
+    });
   }
 
   $(function () {
-    ko.applyBindings(new AddUserViewModel(orgs));
+    ko.applyBindings(new AddUserViewModel(orgs, users));
   });
 }());
 

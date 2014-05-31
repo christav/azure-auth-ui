@@ -56,6 +56,7 @@ function requestToPostModel(req, res, next) {
         microsoftAlias: pair[1]
       }})
   };
+  debug('req.body =' + util.inspect(req.body));
   next();
 }
 
