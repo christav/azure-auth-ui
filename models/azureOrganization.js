@@ -24,6 +24,10 @@ _.extend(AzureOrganization.prototype, {
       })
       .sortBy('displayName')
       .value();
+  },
+
+  getOrgMap: function () {
+    eturn this.orgData.organizations;
   }
 
 });
