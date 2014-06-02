@@ -12,12 +12,10 @@ var sfmt = require('../lib/sfmt');
 
 function AzureOrganization(parsedOrgFile) {
   this.orgData = parsedOrgFile;
-  this.mappings = _(this.orgData)
+  this.mappings = _(this.orgData.organizations)
     .values()
     .pluck('mapping')
     .value();
-
-  debug(sfmt('Mappings = %i', this.mappings));
 }
 
 _.extend(AzureOrganization.prototype, {

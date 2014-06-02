@@ -87,8 +87,10 @@ _.extend(AddUserPostModel.prototype, {
   // Take the post body, set the this.users field to user objects.
   usersFromPostBody: function () {
     // Use _.flatten to ensure that the list of values are arrays even if only one item
-    var githubUsers = _.flatten(this.body.githubUser);
-    var msAliases = _.flatten(this.body.microsoftAlias);
+    var githubUsers = _.flatten([this.body.githubUser]);
+    var msAliases = _.flatten([this.body.microsoftAlias]);
+
+    debug(sfmt('Creating users lists from post body, post githubUsers = %i, microsoftAliases = %i', this.body.githubUser, this.body.microsoftAlias));
 
     // Turn pair of lists into list of pairs
     this.users = _.zip(githubUsers, msAliases)
@@ -111,10 +113,12 @@ _.extend(AddUserPostModel.prototype, {
   areValidUsers: function () {
     this.usersFromPostBody();
 
-    return Q.all([this.githubUsersExist.bind(this), this.usersAreNew.bind(this)])
-      .then(function (a, b) {
-        debug(sfmt('areValidUsers: github users exists: %{0}, users are new: %{1}', a, b));
-        return a && b;
+    return Q.all([this.githubUsersExist(), this.usersAreNew()])
+      .then(function (existsResults) {
+        var githubExists = existsResults[0];
+        var usersAreNew = existsResults[1];
+        debug(sfmt('areValidUsers: github users exists: %{0}, users are new: %{1}', githubExists, usersAreNew));
+        return githubExists && usersAreNew;
       });
   },
 
@@ -152,7 +156,7 @@ _.extend(AddUserPostModel.prototype, {
             result = false;
           }
           if (orgFile.microsoftAliasInFile(user.microsoftAlias)) {
-            user.errorMessage += (result ? '' : ' and') + 'This microsoft alias is already in the file';
+            user.errorMessage += (result ? 'T' : ' and t') + 'his Microsoft alias is already in the file';
             result = false;
           }
           return result;

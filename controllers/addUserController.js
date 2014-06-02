@@ -32,31 +32,61 @@ var inputPageRouter = express.Router();
 inputPageRouter.use(githubAccount.createAccount);
 inputPageRouter.usePromise(processGet);
 
-
 //
 // Middleware used when posted for the add user page.
 //
 
-function processPost(req, res) {
-  var input = new Model(req.account, req.body);
-  return input.isValidPost()
+//
+// Start the post processing - create our model object.
+//
+function processPost(req, res, next) {
+  req.input = new Model(req.account, req.body);
+  next();
+}
+
+//
+// Validate that the request data is correctly formatted;
+// if not it came in from a request outside the UI and
+// should be dropped.
+//
+
+function validatePostFormat(req, res) {
+  if (req.result) {
+    return Q(false);
+  }
+
+  return req.input.isValidPost()
     .then(function (isValidPost) {
       if (!isValidPost) {
-        res.send(400, 'Bad request');
-        res.end();
-        return true;
+        req.result = routeResult.error(400, 'Bad request');
       }
-      return input.areValidUsers()
-        .then(function (validUsers) {
-          if (!validUsers) {
-            return input.getReadModel()
-              .then(function (model) {
-                req.model = model;
-              });
-          }
-        });
     });
 }
+
+//
+// Validate that the post contains valid data - the users
+// all exist, they aren't already in the list, etc.
+// Will redisplay the form with the user inputs and any
+// error messages if there are any.
+//
+
+function validatePostContent(req, res) {
+  // If there's already a result, don't do anything
+  if (req.result) {
+    return Q(false);
+  }
+
+  return req.input.areValidUsers()
+    .then(function (validUsers) {
+      if (!validUsers) {
+        return req.input.getReadModel()
+          .then(function (model) {
+            req.result = routeResult.render('adduser', model);
+          });
+      }
+    });
+}
+
 
 function createPullRequest(req, res) {
   return Q.fcall(function () {
@@ -112,20 +142,17 @@ function generatePullRequest(githubAccount, branchName, addUserModel) {
   });
 }
 
-function finalRedirect(req, res) {
-  return Q.fcall(function () {
-    debug('redirecting to home page');
-    res.redirect('/');
-    return true;
-  });
+function finalRedirect(req, res, next) {
+  res.result = routeResult.redirect('/');
+  next();
 }
-
 
 var processPostRouter = express.Router();
 processPostRouter.use(githubAccount.createAccount);
-processPostRouter.usePromise(processPost);
-processPostRouter.usePromise(createPullRequest);
-processPostRouter.usePromise(finalRedirect);
+processPostRouter.use(processPost);
+processPostRouter.usePromise(validatePostFormat);
+processPostRouter.usePromise(validatePostContent);
+processPostRouter.use(finalRedirect);
 
 exports.get = inputPageRouter;
 exports.post = processPostRouter;
