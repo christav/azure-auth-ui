@@ -10,6 +10,7 @@ var util = require('util');
 
 var promiseUtils = require('../lib/promise-utils');
 var render = require('../lib/render');
+var routeResult = require('../lib/routeResult');
 var sfmt = require('../lib/sfmt');
 
 var githubAccount = require('../models/githubAccount');
@@ -20,13 +21,10 @@ var Model = require('../models/addUserModel');
 // Middleware used on get request to the add user page
 //
 function processGet(req, res) {
-  var model;
-  return Q.fcall(function () {
-    model = new Model(req.account);
-  })
-  .then(function () { return model.getReadModel(); })
+  return Q(new Model(req.account))
+  .then(function (model) { return model.getReadModel(); })
   .then(function (readModel) {
-      req.model = readModel;
+      req.result = routeResult.render('adduser', readModel);
     });
 }
 
@@ -45,6 +43,7 @@ function processPost(req, res) {
     .then(function (isValidPost) {
       if (!isValidPost) {
         res.send(400, 'Bad request');
+        res.end();
         return true;
       }
       return input.areValidUsers()

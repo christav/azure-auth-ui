@@ -8,10 +8,10 @@ var express = require('express');
 var router = express.Router();
 
 var controller = require('../controllers/addUserController');
-var render = require('../lib/render');
 var requiresAuth = require('../lib/requiresAuth');
+var routeResult = require('../lib/routeResult');
 
 router.use(requiresAuth);
-router.get('/adduser', controller.get, render.template('adduser'));
-router.post('/adduser', controller.post, render.template('adduser'));
+router.get('/adduser', controller.get, routeResult.execute);
+router.post('/adduser', controller.post, routeResult.execute);
 module.exports = router;
