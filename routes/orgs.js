@@ -13,5 +13,5 @@ var requiresAuth = require('../lib/requiresAuth');
 
 router.use(requiresAuth);
 router.get('/adduser', controller.get, render.template('adduser'));
-router.post('/adduser', controller.post);
+router.post('/adduser', controller.post, render.template('adduser'));
 module.exports = router;

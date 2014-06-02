@@ -10,102 +10,106 @@ var util = require('util');
 
 var promiseUtils = require('../lib/promise-utils');
 var render = require('../lib/render');
+var sfmt = require('../lib/sfmt');
 
 var githubAccount = require('../models/githubAccount');
 var AzureOrganization = require('../models/azureOrganization');
+var Model = require('../models/addUserModel');
 
 //
 // Middleware used on get request to the add user page
 //
-
-function loadAuthFile(req, res) {
-  return req.account.getOrgFile()
-    .then(function (orgFile) {
-      req.orgFile = new AzureOrganization(orgFile.content);
+function processGet(req, res) {
+  var model;
+  return Q.fcall(function () {
+    model = new Model(req.account);
+  })
+  .then(function () { return model.getReadModel(); })
+  .then(function (readModel) {
+      req.model = readModel;
     });
-}
-
-function orgFileToEmptyReadModel(req, res, next) {
-  var orgs = req.orgFile.getOrganizations();
-
-  req.model = {
-    orgs: orgs,
-    selectedOrg: orgs[0].key,
-    users: [],
-    errors: []
-  };
-  next();
 }
 
 var inputPageRouter = express.Router();
 inputPageRouter.use(githubAccount.createAccount);
-inputPageRouter.usePromise(loadAuthFile);
-inputPageRouter.use(orgFileToEmptyReadModel);
+inputPageRouter.usePromise(processGet);
 
 
 //
 // Middleware used when posted for the add user page.
 //
 
-function requestToPostModel(req, res, next) {
-  req.input = {
-    orgId: req.body['orgToUpdate'],
-    users: _.zip(_.flatten(req.body['githubUser']), _.flatten(req.body['microsoftAlias']))
-      .map(function (pair) { return {
-        githubUser: pair[0],
-        microsoftAlias: pair[1]
-      }})
-  };
-  debug('req.body =' + util.inspect(req.body));
-  next();
+function processPost(req, res) {
+  var input = new Model(req.account, req.body);
+  return input.isValidPost()
+    .then(function (isValidPost) {
+      if (!isValidPost) {
+        res.send(400, 'Bad request');
+        return true;
+      }
+      return input.areValidUsers()
+        .then(function (validUsers) {
+          if (!validUsers) {
+            return input.getReadModel()
+              .then(function (model) {
+                req.model = model;
+              });
+          }
+        });
+    });
 }
 
-function validateInput(req, res, next) {
-  req.model = {
-    orgs: req.orgFile.getOrganizations(),
-    selectedOrg: req.input.orgId,
-    users: req.input.users.map(function (user) {
-      user.githubUser = 'x' + user.githubUser;
-      user.errorMessage = 'Test message';
-      return user;
-    }),
-    errors: ['None shall pass!']
-  };
-
-  render.template('adduser')(req, res);
+function createPullRequest(req, res) {
+  return Q.fcall(function () {
+    if (req.input) {
+      return updateLocalFork(req.account)
+        .then(function () {
+          debug('creating branch for edit');
+          return req.account.createUpdateBranch();
+        })
+        .then(function (branchName) {
+          debug(sfmt('created branch %{0}', branchName));
+          return req.input.addUsers()
+            .then(function () {
+              return createPullRequest(req.account, branchName, req.input);
+            })
+            .then(function (updateResult) {
+              debug(sfmt('Final pull request created, commit ID = %{0}', updateResult.commit.sha));
+            });
+        });
+    }
+  });
 }
 
-function updateLocalFork(req, res) {
+function updateLocalFork(githubAccount) {
   debug('Updating user repo from master');
-  return req.account.createUpdateFromMasterPullRequest()
+  return githubAccount.createUpdateFromMasterPullRequest()
     .then(function (prNumber) {
       debug(prNumber === 0 ?
         'Local fork is up to date' :
-        'PR number ' + prNumber + ' created');
+        sfmt('PR number %d created', prNumber));
       if (prNumber !== 0) {
         debug('merging update pr');
-        return req.account.mergeLocalPullRequest(prNumber);
+        return githubAccount.mergeLocalPullRequest(prNumber);
       }
     })
     .then(function (result) {
       debug('merge result: ' + result);
     }, function (err) {
-      debug('Pull request creation failed, ' + util.inspect(err));
+      debug(sfmt('Pull request creation failed, %i', err));
       throw err;
     });
 }
 
-function generatePullRequest(req, res) {
-  debug('creating pull request for update');
-  return req.account.createUpdateBranch()
-  .then(function (branchName) {
-    debug('created branch ' + branchName);
-
-    var authContent = "Destroy the file!";
-    return req.account.updateAuthFile(branchName, authContent);
-  })
+function generatePullRequest(githubAccount, branchName, addUserModel) {
+  return addUserModel.orgFile
+    .then(function (orgFile) {
+      var authContent = JSON.stringify(orgFile.orgData);
+      return githubAccount.updateAuthFile(branchName, authContent);
+    })
   .then(function (updateResult) {
     debug('file updated, new commit id = ' + updateResult.commit.sha);
+    return githubAccount.createBranchToMasterPullRequest(branchName);
   });
 }
 
@@ -120,12 +124,9 @@ function finalRedirect(req, res) {
 
 var processPostRouter = express.Router();
 processPostRouter.use(githubAccount.createAccount);
-processPostRouter.usePromise(loadAuthFile);
-processPostRouter.use(requestToPostModel);
-processPostRouter.usePromise(validateInput);
-// processPostRouter.usePromise(updateLocalFork);
-// processPostRouter.usePromise(generatePullRequest);
-// processPostRouter.usePromise(finalRedirect);
+processPostRouter.usePromise(processPost);
+processPostRouter.usePromise(createPullRequest);
+processPostRouter.usePromise(finalRedirect);
 
 exports.get = inputPageRouter;
 exports.post = processPostRouter;

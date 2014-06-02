@@ -3,7 +3,13 @@
 //
 
 var _ = require('lodash');
+var debug = require('debug')('azure-auth-ui:AddUserModel');
 var Q = require('q');
+
+var maybe = require('../lib/maybe');
+var sfmt = require('../lib/sfmt');
+
+var AzureOrganization = require('./azureOrganization');
 
 //
 // Object representing a model for data received
@@ -14,10 +20,17 @@ function AddUserPostModel(githubClient, postBody) {
   this.github = githubClient;
   // Kick of fetch of org file and save promise
   // so we can attach to it later.
-  this.orgFile = this.github.getOrgFile();
+  this.orgFile = this.github.getOrgFile()
+    .then(function (rawData) {
+      debug('Org data downloaded, wrapping in azure org');
+      return new AzureOrganization(rawData.content);
+    });
+
   this.body = postBody;
+  this.selectedOrg = maybe(postBody, 'orgToUpdate')();
   this.users = [];
   this.errors = [];
+  debug('construction complete');
 }
 
 _.extend(AddUserPostModel.prototype, {
@@ -25,15 +38,17 @@ _.extend(AddUserPostModel.prototype, {
   // Create read model that doesn't contain any users.
   // Returns promise for the read model.
   //
-  emptyReadModel: function () {
-    return this.orgFile
+  getReadModel: function () {
+    var self = this;
+    return self.orgFile
       .then(function (orgFile) {
         var orgs = orgFile.getOrganizations();
+        debug(sfmt('There are %{0} organizations', orgs.length));
         return {
           orgs: orgs,
           selectedOrg: orgs[0].key,
-          users: this.users,
-          errors: this.errors
+          users: self.users,
+          errors: self.errors
         };
       });
   },
@@ -48,32 +63,32 @@ _.extend(AddUserPostModel.prototype, {
 
     return self.orgFile
       .then(function (orgFile) {
-        if (!self.postBody.orgToUpdate) {
+        if (!self.selectedOrg) {
           self.errors.push('No organization given');
-        } else if (!_.has(orgFile.getOrgMap(), postBody.orgToUpdate)) {
+        } else if (!_.has(orgFile.getOrgMap(), self.selectedOrg)) {
           self.errors.push('Organization given does not exist');
         }
 
-        var githubUsers = self.postBody.githubUser;
-        var microsoftAliases = self.postBody.microsoftAlias;
+        var githubUsers = self.body.githubUser;
+        var microsoftAliases = self.body.microsoftAlias;
 
-        if (!githubUsers || !microsoftAliass) {
+        if (!githubUsers || !microsoftAliases) {
           errors.push('Missing user data');
         }
 
-        if (githubUsers && microsoftAlias && (githubUsers.length !== microsoftAliases.length)) {
+        if (githubUsers && microsoftAliases && (githubUsers.length !== microsoftAliases.length)) {
           self.errors.push('User names and aliases do not match up!');
         }
 
-        return errors.length === 0;
+        return self.errors.length === 0;
     });
   },
 
   // Take the post body, set the this.users field to user objects.
-  function usersFromPostBody: function () {
+  usersFromPostBody: function () {
     // Use _.flatten to ensure that the list of values are arrays even if only one item
-    var githubUsers = _.flatten(this.postBody.githubUser);
-    var msAliases = _.flatten(this.postBody.microsoftAlias);
+    var githubUsers = _.flatten(this.body.githubUser);
+    var msAliases = _.flatten(this.body.microsoftAlias);
 
     // Turn pair of lists into list of pairs
     this.users = _.zip(githubUsers, msAliases)
@@ -90,10 +105,22 @@ _.extend(AddUserPostModel.prototype, {
   // Are all the users listed valid?
   // Returns promise for bool, sets errors if failure
   //
+  // Checks if users are in github, and also
+  // if user is already in the file or not.
+  //
   areValidUsers: function () {
-    usersFromPostBody();
+    this.usersFromPostBody();
 
+    return Q.all([this.githubUsersExist.bind(this), this.usersAreNew.bind(this)])
+      .then(function (a, b) {
+        debug(sfmt('areValidUsers: github users exists: %{0}, users are new: %{1}', a, b));
+        return a && b;
+      });
+  },
+
+  githubUsersExist: function () {
     var self = this;
+
     return self.orgFile
       .then(function (orgFile) {
         return Q.all(
@@ -109,9 +136,39 @@ _.extend(AddUserPostModel.prototype, {
           }))
       })
       .then(function (eachExists) {
-        return _.all(eachExists));
+        return _.all(eachExists);
+      });
+  },
+
+  usersAreNew: function() {
+    var self = this;
+
+    return self.orgFile
+      .then(function (orgFile) {
+        return _.all(self.users.map(function (user) {
+          var result = true;
+          if (orgFile.githubUserInFile(user.githubUser)) {
+            user.errorMessage = 'This github user is already in the file';
+            result = false;
+          }
+          if (orgFile.microsoftAliasInFile(user.microsoftAlias)) {
+            user.errorMessage += (result ? '' : ' and') + 'This microsoft alias is already in the file';
+            result = false;
+          }
+          return result;
+        }));
+      });
+  },
+
+  addUsers: function () {
+    return self.orgFile
+      .then(function (orgFile) {
+        self.users.forEach(function (user) {
+          orgFile.addUserToOrg(user, self.selectedOrg);
+        });
       });
   }
+
 });
 
 module.exports = AddUserPostModel;

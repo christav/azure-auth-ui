@@ -6,13 +6,23 @@
 'use strict';
 
 var _ = require('lodash');
+var debug = require('debug')('azure-auth-ui:AzureOrganization');
+
+var sfmt = require('../lib/sfmt');
 
 function AzureOrganization(parsedOrgFile) {
   this.orgData = parsedOrgFile;
+  this.mappings = _(this.orgData)
+    .values()
+    .pluck('mapping')
+    .value();
+
+  debug(sfmt('Mappings = %i', this.mappings));
 }
 
 _.extend(AzureOrganization.prototype, {
   getOrganizations: function () {
+    debug('Getting organization list from data');
     return _.chain(this.orgData.organizations)
       .pairs()
       .map(function (pair) {
@@ -28,8 +38,25 @@ _.extend(AzureOrganization.prototype, {
 
   getOrgMap: function () {
     return this.orgData.organizations;
-  }
+  },
 
+  githubUserInFile: function (userName) {
+    var self = this;
+    return _.any(this.mappings, function (mapping) {
+      return _.has(mapping, userName);
+    });
+  },
+
+  microsoftAliasInFile: function (alias) {
+    var self = this;
+    return _.any(this.mappings, function (mapping) {
+      _.has(_.invert(mapping), alias);
+    });
+  },
+
+  addUserToOrg: function (user, orgKey) {
+    this.orgData.organizations[orgKey].mapping[user.githubUser] = user.microsoftAlias;
+  }
 });
 
 module.exports = AzureOrganization;
