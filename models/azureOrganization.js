@@ -27,7 +27,7 @@ _.extend(AzureOrganization.prototype, {
   },
 
   getOrgMap: function () {
-    eturn this.orgData.organizations;
+    return this.orgData.organizations;
   }
 
 });
