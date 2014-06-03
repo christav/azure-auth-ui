@@ -69,8 +69,8 @@ _.extend(AddUserPostModel.prototype, {
           self.errors.push('Organization given does not exist');
         }
 
-        var githubUsers = self.body.githubUser;
-        var microsoftAliases = self.body.microsoftAlias;
+        var githubUsers = _.flatten([self.body.githubUser]);
+        var microsoftAliases = _.flatten([self.body.microsoftAlias]);
 
         if (!githubUsers || !microsoftAliases) {
           errors.push('Missing user data');
@@ -129,10 +129,11 @@ _.extend(AddUserPostModel.prototype, {
       .then(function (orgFile) {
         return Q.all(
           self.users.map(function (user) {
+            user.errorMessage = '';
             return self.github.userExists(user.githubUser)
               .then(function (exists) {
                 if (!exists) {
-                  user.errorMessage = 'Github user does not exist';
+                  user.errorMessage += 'Github user does not exist';
                   return false;
                 }
                 return true;
@@ -152,10 +153,11 @@ _.extend(AddUserPostModel.prototype, {
         return _.all(self.users.map(function (user) {
           var result = true;
           if (orgFile.githubUserInFile(user.githubUser)) {
-            user.errorMessage = 'This github user is already in the file';
+            user.errorMessage += 'This github user is already in the file';
             result = false;
           }
           if (orgFile.microsoftAliasInFile(user.microsoftAlias)) {
+            debug(sfmt('Microsoft alias %{0} is already in the file', user.microsoftAlias));
             user.errorMessage += (result ? 'T' : ' and t') + 'his Microsoft alias is already in the file';
             result = false;
           }

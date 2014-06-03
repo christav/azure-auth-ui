@@ -48,7 +48,7 @@ _.extend(AzureOrganization.prototype, {
   microsoftAliasInFile: function (alias) {
     var self = this;
     return _.any(this.mappings, function (mapping) {
-      _.has(_.invert(mapping), alias);
+      return _.has(_.invert(mapping), alias);
     });
   },
 

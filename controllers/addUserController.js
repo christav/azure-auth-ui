@@ -58,6 +58,7 @@ function validatePostFormat(req, res) {
   return req.input.isValidPost()
     .then(function (isValidPost) {
       if (!isValidPost) {
+        debug(sfmt('Invalid post: %i', req.input.errors));
         req.result = routeResult.error(400, 'Bad request');
       }
     });
