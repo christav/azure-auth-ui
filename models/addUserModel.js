@@ -167,6 +167,7 @@ _.extend(AddUserPostModel.prototype, {
   },
 
   addUsers: function () {
+    var self = this;
     return self.orgFile
       .then(function (orgFile) {
         self.users.forEach(function (user) {

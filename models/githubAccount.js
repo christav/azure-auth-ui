@@ -127,12 +127,12 @@ _.extend(GithubAccount.prototype, {
   createBranchToMasterPullRequest: function (branchName) {
     var self = this;
     return self.client.get('pullRequests.create', {
-      user: self.username,
+      user: masterRepo.user,
       repo: masterRepo.repo,
       title: '[Do not merge] Updating authorization - testing',
       body: 'Adding users to azure organization file',
-      base: branchName,
-      head: masterRepo.user + ':master'
+      base: 'master',
+      head: self.username + ':' + branchName,
     }).then(function (pullRequest) {
       return pullRequest.number;
     });

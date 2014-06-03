@@ -54,6 +54,10 @@ _.extend(AzureOrganization.prototype, {
 
   addUserToOrg: function (user, orgKey) {
     this.orgData.organizations[orgKey].mapping[user.githubUser] = user.microsoftAlias;
+  },
+
+  getRawData: function () {
+    return JSON.stringify(this.orgData, null, 4);
   }
 });
 
