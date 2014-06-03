@@ -12,7 +12,7 @@ block content
     - each org in orgs
       != "{ key: '" + org.key + "', description: '" + (org.description || "") + "', displayName: '" + org.displayName + "'},"
   != "];"
-
+  != "var initialSelectedOrg = '" + selectedOrg + "';"
   != "var users = ["
     - each user in users
       != "{ githubUser: '" + user.githubUser + "', microsoftAlias: '" + user.microsoftAlias + "', errorMessage: '" + user.errorMessage + "'},"
@@ -28,7 +28,7 @@ block content
 
       input#orgToUpdate(type='hidden', name='orgToUpdate', data-bind='value: selectedOrganization().key')
 
-    .users-to-add-group
+    .users-to-add-group(data-bind='visible: selectedOrganization().key !== null')
       div(data-bind='foreach: users')
         .row.to-add(data-bind='css: { "has-error": errorMessage }')
           .col-md-4

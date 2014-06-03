@@ -46,7 +46,7 @@ _.extend(AddUserPostModel.prototype, {
         debug(sfmt('There are %{0} organizations', orgs.length));
         return {
           orgs: orgs,
-          selectedOrg: orgs[0].key,
+          selectedOrg: self.selectedOrg,
           users: self.users,
           errors: self.errors
         };

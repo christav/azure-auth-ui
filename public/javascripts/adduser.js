@@ -4,16 +4,24 @@
 
 (function () {
 
-  function AddUserViewModel(orgData, userData) {
+  function AddUserViewModel(orgData, initialOrgKey, userData) {
     var self = this;
 
-    self.organizations = orgData;
+    self.organizations = [ {key: null, description: '', displayName: 'Choose an organization'} ].concat(orgData);
     self.selectedOrganization = ko.observable();
     self.orgToUpdate = ko.computed(function () {
       if (self.selectedOrganization()) {
         return self.selectedOrganization().key;
       }
     });
+
+    if (initialOrgKey !== null) {
+      var matchingOrg = self.organizations.filter(function (org) {
+        return org.key === initialOrgKey;
+      });
+
+      self.selectedOrganization(matchingOrg[0]);
+    }
 
     self.users = ko.observableArray(userData);
 
@@ -41,7 +49,7 @@
   }
 
   $(function () {
-    window.viewModel = new AddUserViewModel(orgs, users);
+    window.viewModel = new AddUserViewModel(orgs, initialSelectedOrg, users);
     ko.applyBindings(viewModel);
   });
 }());
