@@ -50,17 +50,15 @@ function processPost(req, res, next) {
 // should be dropped.
 //
 
-var validatePostFormat = promiseUtils.ifNoResult(
-  function validatePostFormat(req, res) {
-    return req.input.isValidPost()
-      .then(function (isValidPost) {
-        if (!isValidPost) {
-          debug(sfmt('Invalid post: %i', req.input.errors));
-          req.result = routeResult.error(400, 'Bad request');
-        }
-      });
-  }
-);
+function validatePostFormat(req, res) {
+  return req.input.isValidPost()
+    .then(function (isValidPost) {
+      if (!isValidPost) {
+        debug(sfmt('Invalid post: %i', req.input.errors));
+        req.result = routeResult.error(400, 'Bad request');
+      }
+    });
+}
 
 //
 // Validate that the post contains valid data - the users
@@ -68,71 +66,62 @@ var validatePostFormat = promiseUtils.ifNoResult(
 // Will redisplay the form with the user inputs and any
 // error messages if there are any.
 //
-var validatePostContent = promiseUtils.ifNoResult(
-  function validatePostContent(req, res) {
-    return req.input.areValidUsers()
-      .then(function (validUsers) {
-        if (!validUsers) {
-          return req.input.getReadModel()
-            .then(function (model) {
-              req.result = routeResult.render('adduser', model);
-            });
-        }
-      });
-  }
-);
+function validatePostContent(req, res) {
+  return req.input.areValidUsers()
+    .then(function (validUsers) {
+      if (!validUsers) {
+        return req.input.getReadModel()
+          .then(function (model) {
+            debug('users already exist');
+            req.result = routeResult.render('adduser', model);
+          });
+      }
+    });
+}
 
 //
 // Create and merge a pull request from master branch to user's
 // fork.
 //
-var pullMasterToLocal = promiseUtils.ifNoResult(
-  function pullMasterToLocal(req, res) {
+function pullMasterToLocal(req, res) {
     return updateLocalFork(req.account);
-  }
-);
+}
 
 //
 // Create branch on github for the user's update.
 //
-var createBranchForEdit = promiseUtils.ifNoResult(
-  function createBranchForEdit(req, res) {
-    return req.account.createUpdateBranch()
-      .then(function (branchName) {
-        req.branchName = branchName;
-      });
-  }
-);
+function createBranchForEdit(req, res) {
+  return req.account.createUpdateBranch()
+    .then(function (branchName) {
+      req.branchName = branchName;
+    });
+}
 
 //
 // Update contents of the org file to add our new users,
 // and write that change to the update branch.
 //
 
-var updateOrgFileInBranch = promiseUtils.ifNoResult(
-  function updateOrgFileInBranch(req, res) {
-    return req.input.addUsers()
-      .then(function () {
-        return req.input.orgFile;
-      })
-      .then(function (orgFile) {
-        var jsonData = orgFile.getRawData();
-        return req.account.updateAuthFile(req.branchName, jsonData);
-      })
-      .then(function (updateResonse) {
-        debug('org file updated on github');
-      });
-  }
-);
-
-var sendPullRequestToMaster = promiseUtils.ifNoResult(
-  function sendPullRequestToMaster(req, res) {
-    return req.account.createBranchToMasterPullRequest(req.branchName)
-    .then(function (prCreationResult) {
-      debug(sfmt('Pull request number %{0} to master created', prCreationResult));
+function updateOrgFileInBranch(req, res) {
+  return req.input.addUsers()
+    .then(function () {
+      return req.input.orgFile;
+    })
+    .then(function (orgFile) {
+      var jsonData = orgFile.getRawData();
+      return req.account.updateAuthFile(req.branchName, jsonData);
+    })
+    .then(function (updateResonse) {
+      debug('org file updated on github');
     });
-  }
-);
+}
+
+function sendPullRequestToMaster(req, res) {
+  return req.account.createBranchToMasterPullRequest(req.branchName)
+  .then(function (prCreationResult) {
+    debug(sfmt('Pull request number %{0} to master created', prCreationResult));
+  });
+}
 
 function updateLocalFork(githubAccount) {
   debug('Updating user repo from master');
@@ -154,11 +143,19 @@ function updateLocalFork(githubAccount) {
     });
 }
 
-function finalRedirect(req, res, next) {
-  if (!req.result) {
-    req.result = routeResult.redirect('/');
+function finalRedirect(req, res) {
+  req.result = routeResult.redirect('/');
+  return Q(false);
+}
+
+function noResult(req) {
+  debug('checking if there\'s a result in the req already');
+  if(req.result) {
+    debug('there is');
+  } else {
+    debug('there isn\'t');
   }
-  next();
+  return !req.result;
 }
 
 var processPostRouter = express.Router();
@@ -166,12 +163,13 @@ var processPostRouter = express.Router();
   r.use(githubAccount.createAccount);
   r.use(processPost);
   r.usePromise(validatePostFormat);
-  r.usePromise(validatePostContent);
-  r.usePromise(pullMasterToLocal);
-  r.usePromise(createBranchForEdit);
-  r.usePromise(updateOrgFileInBranch);
-  r.usePromise(sendPullRequestToMaster);
-  r.use(finalRedirect);
+  r.usePromiseIf(noResult, validatePostContent);
+  r.usePromiseIf(noResult,
+    pullMasterToLocal,
+    createBranchForEdit,
+    updateOrgFileInBranch,
+    sendPullRequestToMaster,
+    finalRedirect);
 }(processPostRouter));
 
 exports.get = inputPageRouter;
