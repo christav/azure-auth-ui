@@ -1,5 +1,5 @@
 //
-// route for org operations
+// route for add user operations
 //
 
 'use strict';

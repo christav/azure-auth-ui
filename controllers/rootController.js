@@ -9,9 +9,12 @@
 var _ = require('lodash');
 var debug = require('debug')('azure-auth-ui:rootController');
 var express = require('express');
+var Q = require('q');
 var router = express.Router();
 var util = require('util');
 
+var promiseUtils = require('../lib/promise-utils');
+var routeResult = require('../lib/routeResult');
 var githubAccount = require('../models/githubAccount');
 
 var masterRepo = {
@@ -38,30 +41,34 @@ function checkAuthorization(req, res, next) {
   next();
 }
 
+function isAuthorized(req) {
+  return req.model.authorized;
+}
+
 //
 // Third step - does this user have access to the
 // master auth repo? Try to get the repo information
 // - if it fails with a 404 this user doesn't have
 // access.
 //
-function checkAccess(req, res, next) {
-  debug('Checking access');
-  if (!req.account) {
-    debug('no account model');
-    return next();
-  }
+function checkAccess(req, res) {
+  return Q(false)
+    .then(function () {
+      debug('Checking access');
+      if (!req.account) {
+        debug('no account model');
+        return;
+      }
 
-  req.model.repoAccess = false;
+      req.model.repoAccess = false;
 
-  req.account.hasOrgAccess()
-    .then(function (hasAccess) {
-      req.model.repoAccess = hasAccess;
-    },
-    function (err) {
-      req.model.error = 'Could not access github, error = ' + JSON.parse(err.message).message;
-    })
-    .finally(function() {
-      next();
+      return req.account.hasOrgAccess()
+        .then(function (hasAccess) {
+          req.model.repoAccess = hasAccess;
+        },
+        function (err) {
+          req.model.error = 'Could not access github, error = ' + JSON.parse(err.message).message;
+        });
     });
 }
 
@@ -69,59 +76,27 @@ function checkAccess(req, res, next) {
 // Fourth step - does this user already have a fork
 // of the master auth repo?
 //
-function checkForFork(req, res, next) {
+function checkForFork(req, res) {
   debug('checking for fork');
   req.model.hasFork = false;
 
   if (!req.model.repoAccess) {
     debug('no repo access');
-    return next();
+    return Q(false);
   }
 
-  req.account.hasOrgRepoFork()
+  return req.account.hasOrgRepoFork()
     .then(function (hasFork) {
       req.model.hasFork = hasFork;
     },
     function (err) {
       req.model.error = 'Could not access github, error = ' + JSON.parse(err.message).message;
-    })
-    .finally(function() {
-      next();
     });
 }
 
-//
-// And finally - download the org data and pull out the organizations
-//
-
-function downloadOrgData(req, res, next) {
-  if (!req.model.repoAccess) {
-    return next();
-  }
-
-  req.account.getOrgFile()
-    .then(function (content) {
-      debug('received content');
-
-      req.model.content_sha = content.sha;
-      if (content.content) {
-        debug('has valid content');
-        req.model.organizations =
-          _.chain(content.content.organizations)
-            .keys()
-            .map(function (key) { return content.content.organizations[key]; })
-            .pluck('name')
-            .sortBy()
-            .value();
-      } else {
-        debug('content has error ' + content.error);
-        req.model.error = content.error;
-      }
-      next();
-    }, function (err) {
-      debug('error occurred while downloading');
-      next(err);
-    });
+function renderModel(req, res, next) {
+  req.result = routeResult.render('index', req.model);
+  next();
 }
 
 //
@@ -130,7 +105,8 @@ function downloadOrgData(req, res, next) {
 //
 router.use(checkAuthorization);
 router.use(githubAccount.createAccount);
-router.use(checkAccess);
-router.use(checkForFork);
+router.usePromiseIf(isAuthorized, checkAccess);
+router.usePromiseIf(function (req) { return req.model.repoAccess; }, checkForFork);
+router.use(renderModel);
 
-module.exports = router;
+module.exports.get = router;
