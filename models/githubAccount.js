@@ -271,6 +271,15 @@ _.extend(GithubAccount.prototype, {
   usersExist: function (users) {
     var self = this;
     return Q.all(users.map(function (user) { return self.userExists(user); }));
+  },
+
+  // Return observable of the currently open
+  // pull requests against the master repo
+  // opened by the current user.
+  getOpenPullRequests: function () {
+    var self = this;
+    return self.client.list('pullRequests.getAll', _.extend({state: 'open'}, masterRepo))
+      .where(function (pr) { return pr.user.login === self.username; });
   }
 });
 
