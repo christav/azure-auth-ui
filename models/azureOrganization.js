@@ -7,6 +7,7 @@
 
 var _ = require('lodash');
 var debug = require('debug')('azure-auth-ui:AzureOrganization');
+var stringify = require('canonical-json');
 
 var sfmt = require('../lib/sfmt');
 
@@ -57,7 +58,7 @@ _.extend(AzureOrganization.prototype, {
   },
 
   getRawData: function () {
-    return JSON.stringify(this.orgData, null, 4);
+    return stringify(this.orgData, null, 4);
   }
 });
 
