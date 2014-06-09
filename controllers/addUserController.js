@@ -117,10 +117,29 @@ function updateOrgFileInBranch(req, res) {
 }
 
 function sendPullRequestToMaster(req, res) {
-  return req.account.createBranchToMasterPullRequest(req.branchName)
-  .then(function (prCreationResult) {
-    debug(sfmt('Pull request number %{0} to master created', prCreationResult));
-  });
+  var prTitle;
+  var prBody;
+
+  return req.input.selectedOrgDisplayName()
+    .then(function (displayName) {
+      debug('Got org file, creating PR title and body');
+      prTitle = sfmt('Adding users to %{0}', displayName);
+      prBody = 'Adding users ' + req.input.users.map(function (user) {
+        return sfmt('%{0}.microsoft.com (%{1})', user.microsoftAlias, user.githubUser);
+      }).join(', ');
+      debug(sfmt('PR title = %{0}, PR body = %{1}', prTitle, prBody));
+    })
+    .then(function () {
+      debug('Creating PR for update');
+      return req.account.createBranchToMasterPullRequest(req.branchName,
+        prTitle, prBody);
+    })
+    .then(function (prCreationResult) {
+      debug(sfmt('Pull request number %{0} to master created', prCreationResult));
+    },
+    function (err) {
+      debug(sfmt('Error creating pull request, %{0:i}', err));
+    });
 }
 
 function updateLocalFork(githubAccount) {

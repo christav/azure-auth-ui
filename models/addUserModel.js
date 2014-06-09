@@ -174,8 +174,15 @@ _.extend(AddUserPostModel.prototype, {
           orgFile.addUserToOrg(user, self.selectedOrg);
         });
       });
-  }
+  },
 
+  selectedOrgDisplayName: function () {
+    var self = this;
+    return self.orgFile
+      .then(function (orgFile) {
+        return orgFile.getOrgDisplayName(self.selectedOrg);
+      });
+  }
 });
 
 module.exports = AddUserPostModel;

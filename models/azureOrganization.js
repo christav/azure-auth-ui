@@ -39,6 +39,10 @@ _.extend(AzureOrganization.prototype, {
     return this.orgData.organizations;
   },
 
+  getOrgDisplayName: function (orgKey) {
+    return this.orgData.organizations[orgKey].name;
+  },
+
   githubUserInFile: function (userName) {
     var self = this;
     return _.any(this.mappings, function (mapping) {
