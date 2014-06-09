@@ -6,6 +6,10 @@
   "scripts": {
     "start": "node ./server.js"
   },
+  "engines": {
+    "node": "0.10.28",
+    "npm": "1.4.14"
+  },
   "dependencies": {
     "body-parser": "~1.0.0",
     "canonical-json": "0.0.4",
