@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 var debug = require('debug')('azure-auth-ui');
-var app = require('../app');
+var app = require('./appstartup');
 
 app.set('port', process.env.PORT || 3000);
 

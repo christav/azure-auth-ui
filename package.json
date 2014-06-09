@@ -1,10 +1,10 @@
 {
-  "name": "application-name",
+  "name": "azure-auth-ui",
   "version": "0.0.1",
   "private": true,
-  "main": "./bin/www",
+  "main": "./server",
   "scripts": {
-    "start": "nodemon ./bin/www"
+    "start": "node ./server.js"
   },
   "dependencies": {
     "body-parser": "~1.0.0",
