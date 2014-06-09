@@ -101,7 +101,7 @@ function getOpenPrs(req, res) {
     req.account.getOpenPullRequests()
       .subscribe(
         function onNext(pullRequest) {
-          debug(sfmt('got pull request: %{0:i}', pullRequest));
+          debug(sfmt('got pull request'));
           req.model.activePrs.push({
             number: pullRequest.number,
             url: pullRequest.html_url,
