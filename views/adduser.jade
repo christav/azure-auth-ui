@@ -19,7 +19,7 @@ block content
   != "];"
   != "</script>"
 
-  form(method='post', action='/orgs/adduser')
+  form(method='post', action='/adduser')
     .form-group
       label(for='organizationSelect') Choose the organization to add to:
       select#organizationSelect.form-control(data-bind='options: organizations, optionsText: "displayName", value: selectedOrganization')

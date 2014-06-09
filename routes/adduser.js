@@ -12,6 +12,6 @@ var requiresAuth = require('../lib/requiresAuth');
 var routeResult = require('../lib/routeResult');
 
 router.use(requiresAuth);
-router.get('/adduser', controller.get, routeResult.execute);
-router.post('/adduser', controller.post, routeResult.execute);
+router.get('/', controller.get, routeResult.execute);
+router.post('/', controller.post, routeResult.execute);
 module.exports = router;
