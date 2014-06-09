@@ -31,3 +31,19 @@ block content
         p
           a.btn.btn-primary.btn-lg.active(href='/users/checkpermission') List a user's current permissions
 
+        if activePrs && activePrs.length > 0
+          .panel.panel-default
+            .panel-heading Your Open Pull Requests
+            .panel-body
+              table.table
+                thead
+                  th Number
+                  th Title
+                  th Created On
+                - each pr in activePrs
+                  tr
+                    td
+                      a(href=pr.url)= pr.number
+                    td
+                      a(href=pr.url)= pr.title
+                    td= pr.createdOn

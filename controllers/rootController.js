@@ -15,6 +15,7 @@ var util = require('util');
 
 var promiseUtils = require('../lib/promise-utils');
 var routeResult = require('../lib/routeResult');
+var sfmt = require('../lib/sfmt');
 var githubAccount = require('../models/githubAccount');
 
 var masterRepo = {
@@ -80,11 +81,6 @@ function checkForFork(req, res) {
   debug('checking for fork');
   req.model.hasFork = false;
 
-  if (!req.model.repoAccess) {
-    debug('no repo access');
-    return Q(false);
-  }
-
   return req.account.hasOrgRepoFork()
     .then(function (hasFork) {
       req.model.hasFork = hasFork;
@@ -94,7 +90,39 @@ function checkForFork(req, res) {
     });
 }
 
-function renderModel(req, res, next) {
+//
+// Load any current open PRs against the master Repo.
+//
+function getOpenPrs(req, res) {
+  debug('looking for open pull requests');
+  req.model.activePrs = [];
+
+  return Q.promise(function (resolve, reject) {
+    req.account.getOpenPullRequests()
+      .subscribe(
+        function onNext(pullRequest) {
+          debug(sfmt('got pull request: %{0:i}', pullRequest));
+          req.model.activePrs.push({
+            number: pullRequest.number,
+            url: pullRequest.html_url,
+            title: pullRequest.title,
+            body: pullRequest.body,
+            createdOn: new Date(pullRequest.created_at)
+          });
+        },
+        function onError(err) {
+          debug(sfmt('Error reading pull requests: %{0:i}', err));
+          reject(err);
+        },
+        function onComplete() {
+          debug('Finished reading open PRs');
+          resolve();
+        }
+      );
+  });
+}
+
+function setResult(req, res, next) {
   req.result = routeResult.render('index', req.model);
   next();
 }
@@ -107,6 +135,7 @@ router.use(checkAuthorization);
 router.use(githubAccount.createAccount);
 router.usePromiseIf(isAuthorized, checkAccess);
 router.usePromiseIf(function (req) { return req.model.repoAccess; }, checkForFork);
-router.use(renderModel);
+router.usePromiseIf(isAuthorized, getOpenPrs);
+router.use(setResult);
 
 module.exports.get = router;
