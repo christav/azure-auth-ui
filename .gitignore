@@ -10,9 +10,6 @@ azure_error
 checkstyle-result.xml
 test-result.xml
 
-# Bower #
-bower_components/
-
 # Mac OS #
 .DS_Store
 .DS_Store?
