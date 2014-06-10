@@ -28,7 +28,7 @@ function processGet(req, res) {
     });
 }
 
-var inputPageRouter = express.Router();
+var inputPageRouter = exports.get = express.Router();
 inputPageRouter.use(githubAccount.createAccount);
 inputPageRouter.usePromise(processGet);
 
@@ -84,7 +84,27 @@ function validatePostContent(req, res) {
 // fork.
 //
 function pullMasterToLocal(req, res) {
-    return updateLocalFork(req.account);
+  debug('Updating user repo from master');
+  return req.account.createUpdateFromMasterPullRequest()
+    .then(function (prNumber) {
+      debug(prNumber === 0 ?
+        'Local fork is up to date' :
+        sfmt('PR number %d created', prNumber));
+      if (prNumber !== 0) {
+        debug('merging update pr');
+        return req.account.mergeLocalPullRequest(prNumber);
+      }
+    })
+    .then(function (result) {
+      debug('merge result: ' + result);
+    }, function (err) {
+      debug(sfmt('Pull request creation failed, %i', err));
+      if (err.code === 422 && /pull request already exists/.test(err.message)) {
+        req.result = routeResult.redirect('/adduser/pralready');
+      } else {
+        throw err;
+      }
+    });
 }
 
 //
@@ -181,7 +201,7 @@ function noResult(req) {
   return !req.result;
 }
 
-var processPostRouter = express.Router();
+var processPostRouter = exports.post = express.Router();
 (function (r) {
   r.use(githubAccount.createAccount);
   r.use(processPost);
@@ -195,5 +215,26 @@ var processPostRouter = express.Router();
     finalRedirect);
 }(processPostRouter));
 
-exports.get = inputPageRouter;
-exports.post = processPostRouter;
+//
+// Handling for the pralready error reporting page.
+//
+
+function getLocalPrFromMaster(req, res) {
+  return req.account.getUpdateFromMasterPullRequest()
+    .then(function (pr) {
+      var model = {
+        url: pr.html_url,
+        title: pr.title,
+        number: pr.number
+      };
+      debug(sfmt('Found open pull request %i', model));
+      req.result = routeResult.render('pralready', model);
+    });
+}
+
+var prAlreadyRouter = exports.getPrAlready = express.Router();
+(function (r) {
+  r.use(githubAccount.createAccount);
+  r.usePromise(getLocalPrFromMaster);
+}(prAlreadyRouter));
+

@@ -124,6 +124,33 @@ _.extend(GithubAccount.prototype, {
     });
   },
 
+  getUpdateFromMasterPullRequest: function () {
+    var self = this;
+    return Q.promise(function (resolve, reject) {
+      self.client.list('pullRequests.getAll', {
+        user: self.username,
+        repo: masterRepo.repo,
+        state: 'open'
+      })
+      .where(function (pr) {
+        return pr.head.repo.owner.login === masterRepo.user &&
+          pr.head.repo.name === masterRepo.repo &&
+          pr.head.ref === 'master';
+      })
+      .subscribe(
+        function onNext(pr) {
+          // Found the first one, promise can complete
+          resolve(pr);
+        },
+        function onError(err) {
+          reject(err);
+        },
+        function onComplete() {
+          // don't care
+        });
+    });
+  },
+
   createBranchToMasterPullRequest: function (branchName, title, body) {
     var self = this;
     return self.client.get('pullRequests.create', {
