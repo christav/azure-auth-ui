@@ -107,7 +107,7 @@ _.extend(GithubAccount.prototype, {
     return self.client.get('pullRequests.create', {
       user: self.username,
       repo: masterRepo.repo,
-      title: '[Do not merge] Sync to upstream',
+      title: 'Sync to upstream',
       body: 'Updating from upstream master branch',
       base: 'master',
       head: masterRepo.user + ':master'

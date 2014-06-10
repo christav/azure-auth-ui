@@ -158,7 +158,11 @@ function updateLocalFork(githubAccount) {
       debug('merge result: ' + result);
     }, function (err) {
       debug(sfmt('Pull request creation failed, %i', err));
-      throw err;
+      if (err.code === 422 && /pull request already exists/.test(err.message)) {
+        req.result = routeResult.redirect('/adduser/pralready');
+      } else {
+        throw err;
+      }
     });
 }
 
@@ -183,8 +187,8 @@ var processPostRouter = express.Router();
   r.use(processPost);
   r.usePromise(validatePostFormat);
   r.usePromiseIf(noResult, validatePostContent);
+  r.usePromiseIf(noResult, pullMasterToLocal);
   r.usePromiseIf(noResult,
-    pullMasterToLocal,
     createBranchForEdit,
     updateOrgFileInBranch,
     sendPullRequestToMaster,
