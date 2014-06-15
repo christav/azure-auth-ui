@@ -26,7 +26,7 @@ app.engine('hbs', hbs.express3({
 
 app.set('view engine', 'hbs');
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static(path.join(__dirname, 'bower_components')));
+app.use(express.static(path.join(__dirname, '..', 'bower_components')));
 app.use(favicon());
 app.use(logger('dev'));
 
