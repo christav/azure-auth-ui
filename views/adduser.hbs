@@ -1,0 +1,74 @@
+{{#contentFor "head"}}
+<title>Add Users</title>
+<script src='/knockout/dist/knockout.js'></script>
+{{/contentFor}}
+
+<script type='text/javascript'>
+    var orgs = [
+    {{#each orgs}}
+        { key: '{{key}}', description: '{{description}}', displayName: '{{displayName}}' },
+    {{/each}}
+    ];
+    var initialSelectedOrg = '{{selectedOrg}}';
+    var users = [
+    {{#each users}}
+        { githubUser: '{{githubUser}}', microsoftAlias: '{{microsoftAlias}}', errorMessage: '{{errorMessage}}' },
+    {{/each}}
+    ];
+</script>
+
+<h1>Add Users to an Organization</h1>
+
+<form method='post' action='/adduser'>
+    <div class='form-group'>
+        <label for='organizationSelect'>Choose the organization to add to:</label>
+        <select id='organizationSelect' class='form-control' data-bind='options: organizations, optionsText: "displayName", value: selectedOrganization'></select>
+        <div id='organizationDescription' data-bind='text: selectedOrganization().description'></div>
+        <input id='orgToUpdate' type='hidden' name='orgToUpdate' data-bind='value: selectedOrganization().key'></input>
+    </div>
+
+    <div class='users-to-add-group' data-bind='visible: selectedOrganization().key !== null'>
+
+        <div data-bind='foreach: users'>
+            <div class='row to-add' data-bind='css: { "has-error": errorMessage }'>
+                <div class='col-md-4'>
+                    <input class='form-control' type=text name='githubUser' readonly data-bind='value: githubUser' />
+                </div>
+                <div class='col-md-4'>
+                    <input class='form-control' type=text name='microsoftAlias' readonly data-bind='value: microsoftAlias' />
+                </div>
+                <div class='col-md-1'>
+                    <button class='btn btn-warning remove-user-btn' type='button' data-bind='click: $parent.removeUser'>
+                        <span class='glyphicon glyphicon-trash'></span>
+                    </button>
+                </div>
+                <div class='user-error has-error' data-bind='if: errorMessage'>
+                    <span data-bind='text:errorMessage'></span>
+                </div>
+            </div>
+        </div>
+
+        <div class='row'>
+            <div class='col-md-4 form-group'>
+                <label for='githubUser'>Github user name</label>
+                <input id='githubUser' class='form-control' type='text' data-bind='value: githubUserToAdd, valueUpdate: "input"' />
+            </div>
+            <div class='col-md-4 form-group'>
+                <label for='microsoftAlias'>Microsoft Alias</label>
+                <input id='microsoftAlias' class='form-control' type='text' data-bind='value: microsoftAliasToAdd, valueUpdate: "input"' />
+            </div>
+
+            <div class='col-md-1'>
+                <button id='addUserButton' class='btn btn-primary add-user-btn' type='button'
+                    data-bind='enable: enableAdd, click: addUser'>
+                    <span class='glyphicon glyphicon-plus'></span>
+                    Add User
+                </button>
+            </div>
+        </div>
+        <button class='btn btn-warning submit-add-user-btn' type='submit' value='Send Request'
+            data-bind='enable: users().length > 0'>Send Request</button>
+    </div>
+</form>
+
+<script src='/javascripts/adduser.js'></script>
