@@ -11,9 +11,9 @@ var debug = require('debug')('azure-auth-ui:createForkController');
 var express = require('express');
 var router = express.Router();
 
-var middlewareify = require('../lib/promise-utils').middlewareify;
 var githubAccount = require('../models/githubAccount');
 var requiresAuth = require('../lib/requiresAuth');
+var routeResult = require('../lib/routeResult');
 
 //
 // Make sure user doesn't have a fork - if so redirect to home page
@@ -22,8 +22,7 @@ function ensureNoFork(req, res) {
   return req.account.hasOrgRepoFork()
     .then(function (hasRepo) {
       if (hasRepo) {
-        res.redirect('/');
-        return true;
+        req.result = routeResult.redirect('/');
       }
     });
 }
@@ -33,8 +32,7 @@ function createFork(req, res) {
   return req.account.createOrgRepoFork()
     .then(function () {
       debug('request to create completed');
-      res.redirect('/users/waitforfork');
-      return true;
+      req.result = routeResult.redirect('/users/waitforfork');
     });
 }
 
@@ -44,10 +42,10 @@ function checkForFork(req, res) {
     .then(function (hasRepo) {
       if (hasRepo) {
         debug('user has fork');
-        res.redirect('/');
-        return true;
+        req.result = routeResult.redirect('/');
       } else {
         debug('no fork');
+        req.result = routeResult.render('waitforfork');
       }
     });
 }
@@ -56,8 +54,8 @@ var createForkRouter = express.Router();
 (function (router) {
   router.use(requiresAuth);
   router.use(githubAccount.createAccount);
-  router.use(middlewareify(ensureNoFork));
-  router.use(middlewareify(createFork));
+  router.usePromise(ensureNoFork);
+  router.usePromise(createFork);
 })(createForkRouter);
 
 var pollForForkRouter = express.Router();
@@ -65,7 +63,7 @@ var pollForForkRouter = express.Router();
 (function (router) {
   router.use(requiresAuth);
   router.use(githubAccount.createAccount);
-  router.use(middlewareify(checkForFork));
+  router.usePromise(checkForFork);
 })(pollForForkRouter);
 
 _.extend(exports, {

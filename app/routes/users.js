@@ -3,11 +3,11 @@
 var express = require('express');
 var passport = require('passport');
 var controller = require('../controllers/createForkController');
-var render = require('../lib/render');
+var routeResult = require('../lib/routeResult');
+
 var router = express.Router();
 
-router.post('/createfork', controller.createFork);
-
-router.get('/waitforfork', controller.pollForFork, render.template('waitforfork'));
+router.post('/createfork', controller.createFork, routeResult.execute);
+router.get('/waitforfork', controller.pollForFork, routeResult.execute);
 
 module.exports = router;
