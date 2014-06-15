@@ -1,0 +1,54 @@
+{{#contentFor "head"}}
+    <title>Azure Authorization UI</title>
+{{/contentFor}}
+
+{{#unless authorized}}
+    <h1>Not logged in</h1>
+    <p>In order to use this app, you must first log in to Github.</p>
+    <a class='btn btn-primary btn-lg active' href='/auth/login'>Log into Github</a>
+{{else}}
+    {{#if error}}
+        <h1>Error contacting github: {{error}}
+    {{/if}}
+    {{#unless repoAccess}}
+      <p>Unfortunately, the github user #{username} does not have access to the required repository.
+        Please log in under a user that does have access to the repository, or ask somebody else who does. Thanks!</p>
+    {{else}}
+        {{#unless hasFork}}
+            <h1>Setup required</h1>
+            <p>
+                You need a fork of the Azure/azure-github-organization repository in your account.
+                <form action='/users/createfork' method='post'>
+                    <button class='btn btn-primary btn-lg' type='submit'>Create Fork</button>
+                </form>
+        {{else}}
+            <h1>What do you want to do?</h1>
+            <p>
+                <a class='btn btn-primary btn-lg active' href='/adduser'>Give a user access</a>
+            </p>
+            {{#if hasActivePrs}}
+                <div class='panel panel-default'>
+                    <div class='panel-heading'>Your Open Pull Requests</div>
+                    <div class='panel-body'>
+                        <table class='table'>
+                            <thead>
+                                <th>Number</th>
+                                <th>Title</th>
+                                <th>Created On</th>
+                            </thead>
+                            <tbody>
+                                {{#each activePr}}
+                                <tr>
+                                    <td><a href='{{url}}'>{{number}}</td>
+                                    <td><a href='{{url}}'>{{title}}</td>
+                                    <td>{{createdOn}}</td>
+                                </tr>
+                                {{/each}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {{/if}}
+        {{/unless}}
+    {{/unless}}
+{{/unless}}

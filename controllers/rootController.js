@@ -95,6 +95,7 @@ function checkForFork(req, res) {
 //
 function getOpenPrs(req, res) {
   debug('looking for open pull requests');
+  req.model.hasActivePrs = false;
   req.model.activePrs = [];
 
   return Q.promise(function (resolve, reject) {
@@ -109,6 +110,7 @@ function getOpenPrs(req, res) {
             body: pullRequest.body,
             createdOn: new Date(pullRequest.created_at)
           });
+          req.model.hasActivePrs = true;
         },
         function onError(err) {
           debug(sfmt('Error reading pull requests: %{0:i}', err));

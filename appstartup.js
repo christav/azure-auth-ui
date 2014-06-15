@@ -8,6 +8,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var session = require('cookie-session');
 var flash = require('connect-flash');
+var hbs = require('express-hbs');
 var authSetup = require('./lib/auth-setup');
 var routes = require('./routes');
 
@@ -17,7 +18,13 @@ var app = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+app.engine('hbs', hbs.express3({
+  partialsDir: path.join(__dirname, 'views', 'partials'),
+  defaultLayout: path.join(__dirname, 'views', 'layouts', 'default.hbs'),
+  layoutsDir: path.join(__dirname, 'views', 'partials')
+}));
+
+app.set('view engine', 'hbs');
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'bower_components')));
 app.use(favicon());
