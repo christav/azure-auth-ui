@@ -1,0 +1,36 @@
+{{#contentFor "head"}}
+<title>PR from Upstream already open
+{{/contentFor}}
+
+<h1>Can't sync your fork with upstream</h1>
+
+<p>
+    In order to add users to the Azure github organization, this web app needs
+    to sync your fork of the azure-github-organization repository with the
+    master repository. However, your fork currently already has an open
+    pull request to merge from the master fork.
+</p>
+
+<div class='panel panel-default'>
+    <div class='panel-heading'>Your Open Pull Request</div>
+    <div class='panel-body'>
+        <table class='table'>
+            <thead>
+                <th>Number</th>
+                <th>Title</th>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><a href='{{url}}'>{{number}}</a></td>
+                    <td><a href='{{url}}'>{{title}}</a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<p>
+    Please go to that pull request and either merge or close it before returning here
+    to this web app. We recommend keeping your master branch as a copy of the upstream
+    master branch to avoid merge conflicts.
+</p>
