@@ -145,7 +145,7 @@ function sendPullRequestToMaster(req, res) {
       debug('Got org file, creating PR title and body');
       prTitle = sfmt('Adding users to %{0}', displayName);
       prBody = 'Adding users ' + req.input.users.map(function (user) {
-        return sfmt('%{0}.microsoft.com (%{1})', user.microsoftAlias, user.githubUser);
+        return sfmt('%{0}@microsoft.com (GitHub user %{1})', user.microsoftAlias, user.githubUser);
       }).join(', ');
       debug(sfmt('PR title = %{0}, PR body = %{1}', prTitle, prBody));
     })
