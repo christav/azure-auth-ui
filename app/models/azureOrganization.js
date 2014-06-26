@@ -7,9 +7,9 @@
 
 var _ = require('lodash');
 var debug = require('debug')('azure-auth-ui:AzureOrganization');
+var sfmt = require('sfmt');
 var stringify = require('canonical-json');
 
-var sfmt = require('../lib/sfmt');
 
 function AzureOrganization(parsedOrgFile) {
   this.orgData = parsedOrgFile;

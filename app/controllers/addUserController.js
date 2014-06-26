@@ -6,12 +6,12 @@ var _ = require('lodash');
 var debug = require('debug')('azure-auth-ui:addUserController');
 var express = require('express');
 var Q = require('q');
+var sfmt = require('sfmt');
 var util = require('util');
 
 var promiseUtils = require('../lib/promise-utils');
 var render = require('../lib/render');
 var routeResult = require('../lib/routeResult');
-var sfmt = require('../lib/sfmt');
 
 var githubAccount = require('../models/githubAccount');
 var AzureOrganization = require('../models/azureOrganization');

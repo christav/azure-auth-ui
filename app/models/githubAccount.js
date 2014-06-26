@@ -8,7 +8,7 @@ var _ = require('lodash');
 var debug = require('debug')('azure-auth-ui:GithubAccount');
 var GitHubApi = require('../lib/github');
 var Q = require('q');
-var sfmt = require('../lib/sfmt');
+var sfmt = require('sfmt');
 var util = require('util');
 
 var masterRepo = {

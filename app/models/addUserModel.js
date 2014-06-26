@@ -4,10 +4,9 @@
 
 var _ = require('lodash');
 var debug = require('debug')('azure-auth-ui:AddUserModel');
+var maybe = require('maybeish');
 var Q = require('q');
-
-var maybe = require('../lib/maybe');
-var sfmt = require('../lib/sfmt');
+var sfmt = require('sfmt');
 
 var AzureOrganization = require('./azureOrganization');
 

@@ -8,8 +8,7 @@ var _ = require('lodash');
 var debug = require('debug')('azure-auth-ui:promise-utils');
 var express = require('express');
 var Q = require('q');
-
-var sfmt = require('./sfmt');
+var sfmt = require('sfmt');
 
 function middlewareify(promiseReturningHander) {
 	return function (req, res, next) {

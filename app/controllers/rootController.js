@@ -11,11 +11,11 @@ var debug = require('debug')('azure-auth-ui:rootController');
 var express = require('express');
 var Q = require('q');
 var router = express.Router();
+var sfmt = require('sfmt');
 var util = require('util');
 
 var promiseUtils = require('../lib/promise-utils');
 var routeResult = require('../lib/routeResult');
-var sfmt = require('../lib/sfmt');
 var githubAccount = require('../models/githubAccount');
 
 var masterRepo = {
