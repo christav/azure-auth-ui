@@ -12,7 +12,6 @@ var util = require('util');
 
 var githubAccount = require('../../lib/github-account');
 var Model = require('./add-user-model');
-var promiseUtils = require('../../lib/promise-utils');
 var routeResult = require('../../lib/route-result');
 
 var addUserView = path.join(__dirname, 'adduser');
