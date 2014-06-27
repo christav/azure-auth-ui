@@ -9,11 +9,12 @@
 var _ = require('lodash');
 var debug = require('debug')('azure-auth-ui:createForkController');
 var express = require('express');
+var path = require('path');
 var router = express.Router();
 
-var githubAccount = require('../models/githubAccount');
-var requiresAuth = require('../lib/requiresAuth');
-var routeResult = require('../lib/routeResult');
+var githubAccount = require('../../models/githubAccount');
+var requiresAuth = require('../../lib/requiresAuth');
+var routeResult = require('../../lib/routeResult');
 
 //
 // Make sure user doesn't have a fork - if so redirect to home page
@@ -45,7 +46,7 @@ function checkForFork(req, res) {
         req.result = routeResult.redirect('/');
       } else {
         debug('no fork');
-        req.result = routeResult.render('waitforfork');
+        req.result = routeResult.render(path.join(__dirname, 'waitforfork'));
       }
     });
 }

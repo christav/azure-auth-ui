@@ -2,8 +2,8 @@
 
 var express = require('express');
 var passport = require('passport');
-var controller = require('../controllers/createForkController');
-var routeResult = require('../lib/routeResult');
+var controller = require('./createForkController');
+var routeResult = require('../../lib/routeResult');
 
 var router = express.Router();
 
