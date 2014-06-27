@@ -63,6 +63,60 @@ _.extend(AzureOrganization.prototype, {
 
   getRawData: function () {
     return stringify(this.orgData, null, 4);
+  },
+
+  githubUserFromAlias: function (alias) {
+    for(var i = 0; i < this.mappings.length; ++i) {
+      var m = _.invert(this.mappings[i]);
+      if (_.has(m, alias)) {
+        return m[alias];
+      }
+    }
+    return null;
+  },
+
+  orgIdFromGithubUser: function (user) {
+    return _.chain(this.orgData.organizations)
+      .pairs()
+      .filter(function (pair) { return _.has(pair[1].mapping, user); })
+      .map(function (pair) { return pair[0]; })
+      .first()
+      .value();
+  },
+
+  reposForOrg: function (orgId) {
+    return _.keys(this.orgData.organizations[orgId].repos);
+  },
+
+  reposForTeam: function (orgId, teamId) {
+    // TODO: Figure this out when I'm more awake
+    return _.flatten(this.orgData.organizations[orgId].teams[teamId].repos.map(function (repo) {
+      if (/^organization:(.*)$/.match(repo)) {
+        return match[1];
+      }
+      return repo;
+    }));
+  },
+
+  accessForUser: function (user) {
+    var orgId = 'organization:' + this.orgIdFromGithubUser(user);
+    return _.chain(this.orgData.organizations)
+      .values()
+      .pluck('teams')
+      .filter(function (team) { return team; })
+      .map(function (team) { return _.values(team); })
+      .flatten()
+      .filter(function (team) {
+          return _.any(team.members, function (member) { return member === user || member === orgId; });
+      })
+      .map(function (team) {
+        return _.map(team.repos, function (r) { return { repo: r, access: team.access }; });
+      })
+      .flatten()
+      .groupBy('repo')
+      .pluck(0)
+      .groupBy('repo')
+      .value();
   }
 });
 
