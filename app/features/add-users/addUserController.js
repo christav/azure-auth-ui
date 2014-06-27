@@ -5,17 +5,20 @@
 var _ = require('lodash');
 var debug = require('debug')('azure-auth-ui:addUserController');
 var express = require('express');
+var path = require('path');
 var Q = require('q');
 var sfmt = require('sfmt');
 var util = require('util');
 
-var promiseUtils = require('../lib/promise-utils');
-var render = require('../lib/render');
-var routeResult = require('../lib/routeResult');
+var promiseUtils = require('../../lib/promise-utils');
+var routeResult = require('../../lib/routeResult');
 
-var githubAccount = require('../models/githubAccount');
-var AzureOrganization = require('../models/azureOrganization');
-var Model = require('../models/addUserModel');
+var githubAccount = require('../../models/githubAccount');
+var AzureOrganization = require('../../models/azureOrganization');
+var Model = require('./addUserModel');
+
+var addUserView = path.join(__dirname, 'adduser');
+var prAlreadyView = path.join(__dirname, 'pralready');
 
 //
 // Middleware used on get request to the add user page
@@ -24,7 +27,7 @@ function processGet(req, res) {
   return Q(new Model(req.account))
   .then(function (model) { return model.getReadModel(); })
   .then(function (readModel) {
-      req.result = routeResult.render('adduser', readModel);
+      req.result = routeResult.render(addUserView, readModel);
     });
 }
 
@@ -73,7 +76,7 @@ function validatePostContent(req, res) {
         return req.input.getReadModel()
           .then(function (model) {
             debug('users already exist');
-            req.result = routeResult.render('adduser', model);
+            req.result = routeResult.render(adduserView, model);
           });
       }
     });
@@ -228,7 +231,7 @@ function getLocalPrFromMaster(req, res) {
         number: pr.number
       };
       debug(sfmt('Found open pull request %i', model));
-      req.result = routeResult.render('pralready', model);
+      req.result = routeResult.render(prAlreadyView, model);
     });
 }
 
