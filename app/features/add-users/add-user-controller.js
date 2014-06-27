@@ -3,7 +3,7 @@
 //
 
 var _ = require('lodash');
-var debug = require('debug')('azure-auth-ui:addUserController');
+var debug = require('debug')('azure-auth-ui:add-user-controller');
 var express = require('express');
 var path = require('path');
 var Q = require('q');
@@ -11,7 +11,7 @@ var sfmt = require('sfmt');
 var util = require('util');
 
 var githubAccount = require('../../lib/github-account');
-var Model = require('./addUserModel');
+var Model = require('./add-user-model');
 var promiseUtils = require('../../lib/promise-utils');
 var routeResult = require('../../lib/route-result');
 

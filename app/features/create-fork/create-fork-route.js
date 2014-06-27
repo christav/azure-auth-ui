@@ -2,7 +2,7 @@
 
 var express = require('express');
 var passport = require('passport');
-var controller = require('./createForkController');
+var controller = require('./create-fork-controller');
 var requiresAuth = require('../../lib/requires-auth');
 var routeResult = require('../../lib/route-result');
 
