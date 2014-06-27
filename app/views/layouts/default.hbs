@@ -10,7 +10,7 @@
     </head>
 
     <body>
-        <div class='navbar navbar-inverse navbar-fixed-top' rol='navigation'>
+        <div class='navbar navbar-inverse navbar-fixed-top' role='navigation'>
             <div class='container'>
                 <div class='navbar-header'>
                     <button class='navbar-toggle' type='button' data-toggle='collapse' data-target='.navbar-collapse'>
@@ -19,18 +19,20 @@
                         <span class='icon-bar'/>
                         <span class='icon-bar'/>
                     </button>
-                    <a class='navbar-brand' href='/'>Azure Auth UI</a>
+                    <a class='navbar-brand navbar-text' href='/'>Azure Auth UI</a>
                 </div>
                 <div class='collapse navbar-collapse'>
                     <ul class='nav navbar-nav'>
                         <li>
-                            <a href='/'>Home</a>
+                            <a class='navbar-text' href='/'>Home</a>
                         </li>
+                        <li>
                         {{#if authorized}}
                             <a class='navbar-text navbar-right' href='/auth/logout'>Log out</a>
                         {{else}}
                             <a class='navbar-text navbar-right' href='/auth/login'>Log in</a>
                         {{/if}}
+                        </li>
                     </ul>
                 </div>
             </div>
