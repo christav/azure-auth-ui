@@ -17,7 +17,7 @@ var util = require('util');
 
 var githubAccount = require('../../lib/github-account');
 var promiseUtils = require('../../lib/promise-utils');
-var routeResult = require('../../lib/routeResult');
+var routeResult = require('../../lib/route-result');
 
 var masterRepo = {
   user: 'Azure',

@@ -13,7 +13,7 @@ var path = require('path');
 var router = express.Router();
 
 var githubAccount = require('../../lib/github-account');
-var routeResult = require('../../lib/routeResult');
+var routeResult = require('../../lib/route-result');
 
 //
 // Make sure user doesn't have a fork - if so redirect to home page

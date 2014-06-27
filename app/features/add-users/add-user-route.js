@@ -8,8 +8,8 @@ var express = require('express');
 var router = express.Router();
 
 var controller = require('./addUserController');
-var requiresAuth = require('../../lib/requiresAuth');
-var routeResult = require('../../lib/routeResult');
+var requiresAuth = require('../../lib/requires-auth');
+var routeResult = require('../../lib/route-result');
 
 router.use(requiresAuth);
 router.get('/', controller.get, routeResult.execute);

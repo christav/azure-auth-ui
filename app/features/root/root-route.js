@@ -3,7 +3,7 @@
 var express = require('express');
 var router = express.Router();
 
-var routeResult = require('../../lib/routeResult');
+var routeResult = require('../../lib/route-result');
 var controller = require('./rootController');
 
 /* GET home page. */

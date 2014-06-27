@@ -3,8 +3,8 @@
 var express = require('express');
 var passport = require('passport');
 var controller = require('./createForkController');
-var requiresAuth = require('../../lib/requiresAuth');
-var routeResult = require('../../lib/routeResult');
+var requiresAuth = require('../../lib/requires-auth');
+var routeResult = require('../../lib/route-result');
 
 var router = express.Router();
 router.use(requiresAuth);
