@@ -6,7 +6,7 @@
 
 var _ = require('lodash');
 var debug = require('debug')('azure-auth-ui:GithubAccount');
-var GitHubApi = require('../lib/github');
+var GitHubApi = require('./github');
 var Q = require('q');
 var sfmt = require('sfmt');
 var util = require('util');

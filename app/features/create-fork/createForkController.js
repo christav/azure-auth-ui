@@ -12,8 +12,7 @@ var express = require('express');
 var path = require('path');
 var router = express.Router();
 
-var githubAccount = require('../../models/githubAccount');
-var requiresAuth = require('../../lib/requiresAuth');
+var githubAccount = require('../../lib/github-account');
 var routeResult = require('../../lib/routeResult');
 
 //
@@ -53,7 +52,6 @@ function checkForFork(req, res) {
 
 var createForkRouter = express.Router();
 (function (router) {
-  router.use(requiresAuth);
   router.use(githubAccount.createAccount);
   router.usePromise(ensureNoFork);
   router.usePromise(createFork);
@@ -62,7 +60,6 @@ var createForkRouter = express.Router();
 var pollForForkRouter = express.Router();
 
 (function (router) {
-  router.use(requiresAuth);
   router.use(githubAccount.createAccount);
   router.usePromise(checkForFork);
 })(pollForForkRouter);

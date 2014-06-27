@@ -8,7 +8,7 @@ var maybe = require('maybeish');
 var Q = require('q');
 var sfmt = require('sfmt');
 
-var AzureOrganization = require('../../models/azureOrganization');
+var AzureOrganization = require('../../lib/azure-organization');
 
 //
 // Object representing a model for data received

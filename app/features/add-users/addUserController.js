@@ -10,12 +10,10 @@ var Q = require('q');
 var sfmt = require('sfmt');
 var util = require('util');
 
+var githubAccount = require('../../lib/github-account');
+var Model = require('./addUserModel');
 var promiseUtils = require('../../lib/promise-utils');
 var routeResult = require('../../lib/routeResult');
-
-var githubAccount = require('../../models/githubAccount');
-var AzureOrganization = require('../../models/azureOrganization');
-var Model = require('./addUserModel');
 
 var addUserView = path.join(__dirname, 'adduser');
 var prAlreadyView = path.join(__dirname, 'pralready');

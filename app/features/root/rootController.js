@@ -15,9 +15,9 @@ var router = express.Router();
 var sfmt = require('sfmt');
 var util = require('util');
 
+var githubAccount = require('../../lib/github-account');
 var promiseUtils = require('../../lib/promise-utils');
 var routeResult = require('../../lib/routeResult');
-var githubAccount = require('../../models/githubAccount');
 
 var masterRepo = {
   user: 'Azure',
