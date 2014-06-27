@@ -9,14 +9,15 @@
 var _ = require('lodash');
 var debug = require('debug')('azure-auth-ui:rootController');
 var express = require('express');
+var path = require('path');
 var Q = require('q');
 var router = express.Router();
 var sfmt = require('sfmt');
 var util = require('util');
 
-var promiseUtils = require('../lib/promise-utils');
-var routeResult = require('../lib/routeResult');
-var githubAccount = require('../models/githubAccount');
+var promiseUtils = require('../../lib/promise-utils');
+var routeResult = require('../../lib/routeResult');
+var githubAccount = require('../../models/githubAccount');
 
 var masterRepo = {
   user: 'Azure',
@@ -125,7 +126,7 @@ function getOpenPrs(req, res) {
 }
 
 function setResult(req, res, next) {
-  req.result = routeResult.render('index', req.model);
+  req.result = routeResult.render(path.join(__dirname, 'index'), req.model);
   next();
 }
 

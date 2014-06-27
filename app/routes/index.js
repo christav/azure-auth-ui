@@ -1,6 +1,6 @@
 'use strict';
 
-exports.root = require('./root');
+exports.root = require('../features/root/root-route');
 exports.users = require('./users');
 exports.auth = require('./auth');
 exports.adduser = require('./adduser');
