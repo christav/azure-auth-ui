@@ -9,7 +9,7 @@
 var _ = require('lodash');
 var debug = require('debug')('azure-auth-ui:github');
 var GitHubApi = require('github');
-var Q = require('q');
+var Promise = require('bluebird');
 var Rx = require('rx');
 
 //
@@ -39,7 +39,17 @@ function Client(authToken) {
 
 _.extend(Client.prototype, {
   get: function(methodPath, msg) {
-    return Q.nfcall(getFunction(this.client, methodPath), msg);
+    var self = this;
+    return new Promise(function (resolve, reject) {
+      var fn = getFunction(self.client, methodPath);
+      fn(msg, function (err, result) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(result);
+        }
+      });
+    });
   },
 
   list: function (methodPath, msg) {
