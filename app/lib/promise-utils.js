@@ -7,7 +7,7 @@
 var _ = require('lodash');
 var debug = require('debug')('azure-auth-ui:promise-utils');
 var express = require('express');
-var Q = require('q');
+var Promise = require('bluebird');
 var sfmt = require('sfmt');
 
 function middlewareify(promiseReturningHander) {
@@ -26,7 +26,7 @@ function middlewareify(promiseReturningHander) {
 function ifNoResult(promiseReturningMiddleware) {
 	return function (req, res) {
 		if (req.result) {
-			return Q(false);
+			return Promise.resolve(false);
 		}
 		return promiseReturningMiddleware(req, res);
 	};

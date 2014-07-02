@@ -7,7 +7,7 @@
 var _ = require('lodash');
 var debug = require('debug')('azure-auth-ui:GithubAccount');
 var GitHubApi = require('./github');
-var Q = require('q');
+var Promise = require('bluebird');
 var sfmt = require('sfmt');
 var util = require('util');
 
@@ -45,7 +45,7 @@ _.extend(GithubAccount.prototype, {
 
     var self = this;
 
-    return Q.promise(function (resolve, reject) {
+    return new Promise(function (resolve, reject) {
       self.client.list('repos.getForks', masterRepo)
         .first(function (fork) {
           return fork.owner.login === self.username;
@@ -126,7 +126,7 @@ _.extend(GithubAccount.prototype, {
 
   getUpdateFromMasterPullRequest: function () {
     var self = this;
-    return Q.promise(function (resolve, reject) {
+    return new Promise(function (resolve, reject) {
       self.client.list('pullRequests.getAll', {
         user: self.username,
         repo: masterRepo.repo,
@@ -222,7 +222,7 @@ _.extend(GithubAccount.prototype, {
   getUniqueBranchName: function (rootOfName) {
     var self = this;
     var names = [];
-    return Q.promise(function (resolve, reject) {
+    return new Promise(function (resolve, reject) {
       self.client.list('gitdata.getAllReferences', {
         user: self.username,
         repo: masterRepo.repo
@@ -297,7 +297,7 @@ _.extend(GithubAccount.prototype, {
 
   usersExist: function (users) {
     var self = this;
-    return Q.all(users.map(function (user) { return self.userExists(user); }));
+    return Promise.all(users.map(function (user) { return self.userExists(user); }));
   },
 
   // Return observable of the currently open
