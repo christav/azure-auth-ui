@@ -73,7 +73,7 @@ function validatePostContent(req, res) {
         return req.input.getReadModel()
           .then(function (model) {
             debug('users already exist');
-            req.result = routeResult.render(adduserView, model);
+            req.result = routeResult.render(addUserView, model);
           });
       }
     });
