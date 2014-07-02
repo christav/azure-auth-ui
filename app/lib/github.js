@@ -39,17 +39,7 @@ function Client(authToken) {
 
 _.extend(Client.prototype, {
   get: function(methodPath, msg) {
-    var self = this;
-    return new Promise(function (resolve, reject) {
-      var fn = getFunction(self.client, methodPath);
-      fn(msg, function (err, result) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(result);
-        }
-      });
-    });
+    return Promise.promisify(getFunction(this.client, methodPath))(msg);
   },
 
   list: function (methodPath, msg) {
