@@ -6,7 +6,7 @@ var _ = require('lodash');
 var debug = require('debug')('azure-auth-ui:add-user-controller');
 var express = require('express');
 var path = require('path');
-var Q = require('q');
+var Promise = require('bluebird');
 var sfmt = require('sfmt');
 var util = require('util');
 
@@ -21,7 +21,7 @@ var prAlreadyView = path.join(__dirname, 'pralready');
 // Middleware used on get request to the add user page
 //
 function processGet(req, res) {
-  return Q(new Model(req.account))
+  return new Promise.resolve(new Model(req.account))
   .then(function (model) { return model.getReadModel(); })
   .then(function (readModel) {
       req.result = routeResult.render(addUserView, readModel);
@@ -188,7 +188,7 @@ function updateLocalFork(githubAccount) {
 
 function finalRedirect(req, res) {
   req.result = routeResult.redirect('/');
-  return Q(false);
+  return new Promise.resolve(false);
 }
 
 function noResult(req) {
