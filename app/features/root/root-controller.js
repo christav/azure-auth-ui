@@ -10,7 +10,7 @@ var _ = require('lodash');
 var debug = require('debug')('azure-auth-ui:rootController');
 var express = require('express');
 var path = require('path');
-var Q = require('q');
+var Promise = require('bluebird');
 var router = express.Router();
 var sfmt = require('sfmt');
 var util = require('util');
@@ -53,7 +53,7 @@ function isAuthorized(req) {
 // access.
 //
 function checkAccess(req, res) {
-  return Q(false)
+  return Promise.resolve(false)
     .then(function () {
       debug('Checking access');
       if (!req.account) {
@@ -98,7 +98,7 @@ function getOpenPrs(req, res) {
   req.model.hasActivePrs = false;
   req.model.activePrs = [];
 
-  return Q.promise(function (resolve, reject) {
+  return new Promise(function (resolve, reject) {
     req.account.getOpenPullRequests()
       .subscribe(
         function onNext(pullRequest) {
