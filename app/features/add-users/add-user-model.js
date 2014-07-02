@@ -5,7 +5,7 @@
 var _ = require('lodash');
 var debug = require('debug')('azure-auth-ui:AddUserModel');
 var maybe = require('maybeish');
-var Q = require('q');
+var Promise = require('bluebird');
 var sfmt = require('sfmt');
 
 var AzureOrganization = require('../../lib/azure-organization');
@@ -112,7 +112,7 @@ _.extend(AddUserPostModel.prototype, {
   areValidUsers: function () {
     this.usersFromPostBody();
 
-    return Q.all([this.githubUsersExist(), this.usersAreNew()])
+    return Promise.all([this.githubUsersExist(), this.usersAreNew()])
       .then(function (existsResults) {
         var githubExists = existsResults[0];
         var usersAreNew = existsResults[1];
@@ -126,7 +126,7 @@ _.extend(AddUserPostModel.prototype, {
 
     return self.orgFile
       .then(function (orgFile) {
-        return Q.all(
+        return Promise.all(
           self.users.map(function (user) {
             user.errorMessage = '';
             return self.github.userExists(user.githubUser)
