@@ -47,7 +47,8 @@ _.extend(AddUserPostModel.prototype, {
           orgs: orgs,
           selectedOrg: self.selectedOrg,
           users: self.users,
-          errors: self.errors
+          errors: self.errors,
+          authorized: true
         };
       });
   },
