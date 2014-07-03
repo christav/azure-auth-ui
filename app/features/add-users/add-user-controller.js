@@ -21,7 +21,7 @@ var prAlreadyView = path.join(__dirname, 'pralready');
 // Middleware used on get request to the add user page
 //
 function processGet(req, res) {
-  return new Promise.resolve(new Model(req.account))
+  return Promise.resolve(new Model(req.account))
   .then(function (model) { return model.getReadModel(); })
   .then(function (readModel) {
       req.result = routeResult.render(addUserView, readModel);
@@ -188,7 +188,7 @@ function updateLocalFork(githubAccount) {
 
 function finalRedirect(req, res) {
   req.result = routeResult.redirect('/');
-  return new Promise.resolve(false);
+  return Promise.resolve(false);
 }
 
 function noResult(req) {
